@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
+import axios from 'axios';
 import { useTelegramWebApp } from '@/hooks/useTelegramWebApp';
 
 interface Practice {
@@ -76,7 +77,7 @@ const moduleMeta: Record<(typeof moduleOrder)[number], { title: string; tagline:
   setup: { title: 'НАСТРОЙКА НА РАБОТУ В ПОТОКЕ', tagline: 'Подготовь состояние', accent: 'from-rose-500 to-red-500' },
   prep: { title: 'ПРЕДВАРИТЕЛЬНОЕ ЗАДАНИЕ', tagline: 'Задай намерение', accent: 'from-red-500 to-orange-500' },
   module1: { title: 'МОДУЛЬ I: НАБОР ЭНЕРГИИ', tagline: 'Разгоняем мощность', accent: 'from-orange-500 to-amber-500' },
-  module2: { title: 'МОДУЛЬ II: ИССЛЕДОВАНИЕ ПОТЕНЦИАЛА', tagline: 'Замеряем потолки', accent: 'from-amber-500 to-emerald-500' },
+  module2: { title: 'МОДУЛЬ II: ИССЛЕДОВАНИЕ ПОТЕНЦИАЛА', tagline: 'Исследуем себя', accent: 'from-amber-500 to-emerald-500' },
   module3: { title: 'МОДУЛЬ III: ВЫБОР НАПРАВЛЕНИЯ', tagline: 'Фокусируем намерение', accent: 'from-emerald-500 to-sky-500' },
   module4: { title: 'МОДУЛЬ IV: ПРИВЫЧКА ДЕЛАТЬ', tagline: 'Фиксируем результат', accent: 'from-sky-500 to-indigo-500' },
 };
@@ -112,18 +113,56 @@ export default function Home() {
     sendPayload,
   } = useTelegramWebApp();
 
-  // Load from localStorage on mount
+  // Load progress on mount
   useEffect(() => {
-    const saved = localStorage.getItem('potok_progress');
-    if (saved) {
-      setCheckedItems(JSON.parse(saved));
-    }
-  }, []);
+    const loadProgress = async () => {
+      if (isTelegram && telegramUser?.id) {
+        // Загружаем с сервера для Telegram пользователей
+        try {
+          const response = await axios.get(`/api/progress/${telegramUser.id}`);
+          if (response.data?.checkedItems) {
+            setCheckedItems(response.data.checkedItems);
+            return;
+          }
+        } catch (error) {
+          console.error('Failed to load progress from server:', error);
+          // Fallback на localStorage
+        }
+      }
+      
+      // Fallback на localStorage для не-Telegram или при ошибке
+      const saved = localStorage.getItem('potok_progress');
+      if (saved) {
+        setCheckedItems(JSON.parse(saved));
+      }
+    };
 
-  // Save to localStorage whenever checkedItems changes
+    loadProgress();
+  }, [isTelegram, telegramUser?.id]);
+
+  // Save progress whenever checkedItems changes
   useEffect(() => {
+    // Всегда сохраняем в localStorage как backup
     localStorage.setItem('potok_progress', JSON.stringify(checkedItems));
-  }, [checkedItems]);
+
+    // Для Telegram пользователей также сохраняем на сервер
+    if (isTelegram && telegramUser?.id) {
+      const saveToServer = async () => {
+        try {
+          await axios.post('/api/progress', {
+            userId: String(telegramUser.id),
+            checkedItems,
+          });
+        } catch (error) {
+          console.error('Failed to save progress to server:', error);
+        }
+      };
+
+      // Debounce: сохраняем через 500ms после последнего изменения
+      const timeoutId = setTimeout(saveToServer, 500);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [checkedItems, isTelegram, telegramUser?.id]);
 
   const togglePractice = (id: string) => {
     setCheckedItems(prev => ({
@@ -198,6 +237,10 @@ export default function Home() {
         },
         timestamp: Date.now(),
       });
+      // Закрываем приложение после отправки данных
+      setTimeout(() => {
+        webApp?.close();
+      }, 100);
     });
 
     return () => {
