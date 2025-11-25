@@ -119,13 +119,44 @@ export default function Home() {
       if (isTelegram && telegramUser?.id) {
         // Загружаем с сервера для Telegram пользователей
         try {
+          console.log('[Client] Loading progress for userId:', telegramUser.id);
           const response = await axios.get(`/api/progress/${telegramUser.id}`);
+          console.log('[Client] Server response:', response.data);
           if (response.data?.checkedItems) {
-            setCheckedItems(response.data.checkedItems);
+            const serverItems = response.data.checkedItems;
+            const serverCount = Object.keys(serverItems).length;
+            console.log('[Client] Loaded', serverCount, 'items from server');
+            
+            // Объединяем с localStorage (приоритет серверу, но сохраняем локальные если их больше)
+            const localSaved = localStorage.getItem('potok_progress');
+            if (localSaved) {
+              const localItems = JSON.parse(localSaved);
+              const localCount = Object.keys(localItems).length;
+              console.log('[Client] Local storage has', localCount, 'items');
+              
+              // Если на сервере есть данные, используем их, иначе локальные
+              if (serverCount > 0) {
+                setCheckedItems(serverItems);
+              } else if (localCount > 0) {
+                setCheckedItems(localItems);
+                // Синхронизируем локальные данные на сервер
+                try {
+                  await axios.post('/api/progress', {
+                    userId: String(telegramUser.id),
+                    checkedItems: localItems,
+                  });
+                  console.log('[Client] Synced local data to server');
+                } catch (e) {
+                  console.error('[Client] Failed to sync local data:', e);
+                }
+              }
+            } else {
+              setCheckedItems(serverItems);
+            }
             return;
           }
         } catch (error) {
-          console.error('Failed to load progress from server:', error);
+          console.error('[Client] Failed to load progress from server:', error);
           // Fallback на localStorage
         }
       }
@@ -133,6 +164,7 @@ export default function Home() {
       // Fallback на localStorage для не-Telegram или при ошибке
       const saved = localStorage.getItem('potok_progress');
       if (saved) {
+        console.log('[Client] Loading from localStorage');
         setCheckedItems(JSON.parse(saved));
       }
     };
@@ -149,12 +181,15 @@ export default function Home() {
     if (isTelegram && telegramUser?.id) {
       const saveToServer = async () => {
         try {
+          const itemsCount = Object.keys(checkedItems).length;
+          console.log('[Client] Saving progress to server:', { userId: telegramUser.id, itemsCount });
           await axios.post('/api/progress', {
             userId: String(telegramUser.id),
             checkedItems,
           });
+          console.log('[Client] Progress saved successfully');
         } catch (error) {
-          console.error('Failed to save progress to server:', error);
+          console.error('[Client] Failed to save progress to server:', error);
         }
       };
 
