@@ -29,7 +29,9 @@
 ## Шаг 4: Добавь переменные окружения в Vercel
 
 1. Открой Vercel Dashboard → твой проект → **Settings** → **Environment Variables**
-2. Добавь две переменные:
+2. Добавь **четыре** переменные (для клиента и serverless functions):
+   
+   **Для клиента (VITE_ префикс):**
    - **Name**: `VITE_SUPABASE_URL`
      **Value**: твой Project URL из Supabase
      **Environments**: Production, Preview, Development (все три)
@@ -37,8 +39,17 @@
    - **Name**: `VITE_SUPABASE_ANON_KEY`
      **Value**: твой anon public ключ из Supabase
      **Environments**: Production, Preview, Development (все три)
+   
+   **Для serverless functions (без VITE_ префикса):**
+   - **Name**: `SUPABASE_URL`
+     **Value**: тот же Project URL из Supabase
+     **Environments**: Production, Preview, Development (все три)
+   
+   - **Name**: `SUPABASE_ANON_KEY`
+     **Value**: тот же anon public ключ из Supabase
+     **Environments**: Production, Preview, Development (все три)
 
-3. Нажми "Save"
+3. Нажми "Save" для каждой переменной
 
 ## Шаг 5: Передеплой проект
 
