@@ -1,6 +1,13 @@
 -- SQL для создания таблицы прогресса в Supabase
 -- Выполни этот SQL в Supabase Dashboard → SQL Editor
 
+-- Удаляем существующие объекты (если есть) для чистого старта
+DROP POLICY IF EXISTS "Users can insert own progress" ON user_progress;
+DROP POLICY IF EXISTS "Users can update own progress" ON user_progress;
+DROP POLICY IF EXISTS "Users can read own progress" ON user_progress;
+DROP TRIGGER IF EXISTS update_user_progress_updated_at ON user_progress;
+DROP FUNCTION IF EXISTS update_updated_at_column();
+
 -- Создаём таблицу для хранения прогресса пользователей
 CREATE TABLE IF NOT EXISTS user_progress (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -26,29 +33,34 @@ END;
 $$ language 'plpgsql';
 
 -- Триггер для автоматического обновления updated_at
+DROP TRIGGER IF EXISTS update_user_progress_updated_at ON user_progress;
 CREATE TRIGGER update_user_progress_updated_at
   BEFORE UPDATE ON user_progress
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
--- Row Level Security (RLS) - пользователи могут видеть только свой прогресс
+-- Row Level Security (RLS) - отключаем для начала, чтобы всё работало
+-- Потом можно включить и настроить политики
+ALTER TABLE user_progress DISABLE ROW LEVEL SECURITY;
+
+-- Политики (пока отключены, но оставляем для будущего)
+-- Раскомментируй и настрой позже, если нужно ограничить доступ
+/*
 ALTER TABLE user_progress ENABLE ROW LEVEL SECURITY;
 
--- Политика: пользователи могут читать только свой прогресс
 CREATE POLICY "Users can read own progress"
   ON user_progress
   FOR SELECT
-  USING (auth.uid()::text = user_id::text OR true); -- Пока разрешаем всем, потом можно настроить через JWT
+  USING (true); -- Пока разрешаем всем
 
--- Политика: пользователи могут обновлять только свой прогресс
 CREATE POLICY "Users can update own progress"
   ON user_progress
   FOR UPDATE
-  USING (auth.uid()::text = user_id::text OR true);
+  USING (true);
 
--- Политика: пользователи могут создавать свой прогресс
 CREATE POLICY "Users can insert own progress"
   ON user_progress
   FOR INSERT
-  WITH CHECK (auth.uid()::text = user_id::text OR true);
+  WITH CHECK (true);
+*/
 
