@@ -116,6 +116,8 @@ export default function Home() {
   // Load progress on mount
   useEffect(() => {
     const loadProgress = async () => {
+      console.log('[Client] Load progress called', { isTelegram, userId: telegramUser?.id });
+      
       if (isTelegram && telegramUser?.id) {
         // Загружаем с сервера для Telegram пользователей
         try {
