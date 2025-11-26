@@ -143,27 +143,58 @@ export default function Home() {
       
       if (hasTelegram && userId) {
         try {
-          console.log('[Client] Making GET request to /api/progress/' + userId);
-          const response = await axios.get(`/api/progress/${userId}`);
-          console.log('[Client] GET response:', response.data);
+          // Пробуем загрузить из Supabase
+          console.log('[Client] Making GET request to /api/progress-supabase/' + userId);
+          const response = await axios.get(`/api/progress-supabase?userId=${userId}`);
+          console.log('[Client] GET response from Supabase:', response.data);
           
           if (response.data?.checkedItems && Object.keys(response.data.checkedItems).length > 0) {
             const serverItems = response.data.checkedItems;
             const serverCount = Object.keys(serverItems).length;
-            console.log('[Client] Loaded', serverCount, 'items from server');
+            console.log('[Client] Loaded', serverCount, 'items from Supabase');
             
             if (isMounted) {
-              // Объединяем: серверные данные имеют приоритет
+              // Серверные данные имеют приоритет
               setCheckedItems(serverItems);
               localStorage.setItem('potok_progress', JSON.stringify(serverItems));
-              console.log('[Client] Updated from server');
+              console.log('[Client] Updated from Supabase');
             }
+            return;
           } else {
-            console.log('[Client] No server data, keeping local');
+            console.log('[Client] No Supabase data, trying fallback API');
+            // Fallback на старый API
+            try {
+              const fallbackResponse = await axios.get(`/api/progress/${userId}`);
+              if (fallbackResponse.data?.checkedItems && Object.keys(fallbackResponse.data.checkedItems).length > 0) {
+                const fallbackItems = fallbackResponse.data.checkedItems;
+                if (isMounted) {
+                  setCheckedItems(fallbackItems);
+                  localStorage.setItem('potok_progress', JSON.stringify(fallbackItems));
+                  console.log('[Client] Updated from fallback API');
+                }
+                return;
+              }
+            } catch (fallbackError) {
+              console.log('[Client] Fallback API also failed, keeping local');
+            }
           }
         } catch (error: any) {
-          console.error('[Client] GET request failed:', error.message);
-          // Оставляем данные из localStorage
+          console.error('[Client] GET request to Supabase failed:', error.message);
+          // Пробуем fallback API
+          try {
+            const fallbackResponse = await axios.get(`/api/progress/${userId}`);
+            if (fallbackResponse.data?.checkedItems && Object.keys(fallbackResponse.data.checkedItems).length > 0) {
+              const fallbackItems = fallbackResponse.data.checkedItems;
+              if (isMounted) {
+                setCheckedItems(fallbackItems);
+                localStorage.setItem('potok_progress', JSON.stringify(fallbackItems));
+                console.log('[Client] Updated from fallback API');
+              }
+            }
+          } catch (fallbackError) {
+            console.error('[Client] Fallback API also failed:', fallbackError);
+            // Оставляем данные из localStorage
+          }
         }
       }
       
@@ -252,7 +283,7 @@ export default function Home() {
       return;
     }
 
-    configureMainButton({ text: `Сохранить и синхронизировать ${globalPercent}%`, isVisible: true });
+    configureMainButton({ text: `Отправить ${globalPercent}%`, isVisible: true });
     
     const unsubscribe = registerMainButtonClick?.(async () => {
       try {
@@ -260,15 +291,32 @@ export default function Home() {
         localStorage.setItem('potok_progress', JSON.stringify(checkedItems));
         console.log('[Client] Saved to localStorage');
         
-        // 2. Сохраняем на сервер (если есть userId)
+        // 2. Сохраняем на сервер в Supabase (если есть userId)
         const userId = telegramUser?.id || window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
         if (userId) {
-          console.log('[Client] Syncing to server for userId:', userId);
-          await axios.post('/api/progress', {
-            userId: String(userId),
-            checkedItems,
-          });
-          console.log('[Client] Synced to server successfully');
+          console.log('[Client] Syncing to Supabase for userId:', userId);
+          try {
+            await axios.post('/api/progress-supabase', {
+              userId: String(userId),
+              checkedItems,
+              telegramUsername: telegramUser?.username || window.Telegram?.WebApp?.initDataUnsafe?.user?.username,
+              telegramFirstName: telegramUser?.first_name || window.Telegram?.WebApp?.initDataUnsafe?.user?.first_name,
+              telegramLastName: telegramUser?.last_name || window.Telegram?.WebApp?.initDataUnsafe?.user?.last_name,
+            });
+            console.log('[Client] Synced to Supabase successfully');
+          } catch (error) {
+            console.error('[Client] Failed to sync to Supabase:', error);
+            // Пробуем старый API как fallback
+            try {
+              await axios.post('/api/progress', {
+                userId: String(userId),
+                checkedItems,
+              });
+              console.log('[Client] Synced to fallback API');
+            } catch (fallbackError) {
+              console.error('[Client] Fallback API also failed:', fallbackError);
+            }
+          }
         }
         
         // 3. Отправляем данные в бот
