@@ -113,120 +113,80 @@ export default function Home() {
     sendPayload,
   } = useTelegramWebApp();
 
-  // Load progress on mount
+  // Load progress on mount - только один раз при загрузке
   useEffect(() => {
+    let isMounted = true;
+    
     const loadProgress = async () => {
       console.log('[Client] === LOAD PROGRESS START ===');
-      console.log('[Client] isTelegram:', isTelegram);
-      console.log('[Client] telegramUser:', telegramUser);
-      console.log('[Client] window.Telegram:', window.Telegram);
       
-      // Проверяем, есть ли Telegram WebApp
+      // Сначала загружаем из localStorage (быстро)
+      const localSaved = localStorage.getItem('potok_progress');
+      if (localSaved) {
+        try {
+          const localItems = JSON.parse(localSaved);
+          const localCount = Object.keys(localItems).length;
+          if (localCount > 0 && isMounted) {
+            console.log('[Client] Loading from localStorage first:', localCount, 'items');
+            setCheckedItems(localItems);
+          }
+        } catch (e) {
+          console.error('[Client] Failed to parse localStorage:', e);
+        }
+      }
+      
+      // Потом пытаемся загрузить с сервера (если Telegram)
       const hasTelegram = Boolean(window.Telegram?.WebApp);
       const userId = telegramUser?.id || window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
       
-      console.log('[Client] hasTelegram:', hasTelegram);
-      console.log('[Client] userId:', userId);
+      console.log('[Client] hasTelegram:', hasTelegram, 'userId:', userId);
       
       if (hasTelegram && userId) {
-        // Загружаем с сервера для Telegram пользователей
         try {
           console.log('[Client] Making GET request to /api/progress/' + userId);
           const response = await axios.get(`/api/progress/${userId}`);
-          console.log('[Client] GET response status:', response.status);
-          console.log('[Client] GET response data:', response.data);
+          console.log('[Client] GET response:', response.data);
           
-          if (response.data?.checkedItems) {
+          if (response.data?.checkedItems && Object.keys(response.data.checkedItems).length > 0) {
             const serverItems = response.data.checkedItems;
             const serverCount = Object.keys(serverItems).length;
             console.log('[Client] Loaded', serverCount, 'items from server');
             
-            // Объединяем с localStorage (приоритет серверу)
-            const localSaved = localStorage.getItem('potok_progress');
-            if (localSaved) {
-              const localItems = JSON.parse(localSaved);
-              const localCount = Object.keys(localItems).length;
-              console.log('[Client] Local storage has', localCount, 'items');
-              
-              // Если на сервере есть данные, используем их, иначе локальные
-              if (serverCount > 0) {
-                setCheckedItems(serverItems);
-                // Обновляем localStorage серверными данными
-                localStorage.setItem('potok_progress', JSON.stringify(serverItems));
-              } else if (localCount > 0) {
-                setCheckedItems(localItems);
-                // Синхронизируем локальные данные на сервер
-                try {
-                  await axios.post('/api/progress', {
-                    userId: String(userId),
-                    checkedItems: localItems,
-                  });
-                  console.log('[Client] Synced local data to server');
-                } catch (e) {
-                  console.error('[Client] Failed to sync local data:', e);
-                }
-              }
-            } else {
+            if (isMounted) {
+              // Объединяем: серверные данные имеют приоритет
               setCheckedItems(serverItems);
-              if (serverCount > 0) {
-                localStorage.setItem('potok_progress', JSON.stringify(serverItems));
-              }
+              localStorage.setItem('potok_progress', JSON.stringify(serverItems));
+              console.log('[Client] Updated from server');
             }
-            console.log('[Client] === LOAD PROGRESS SUCCESS ===');
-            return;
+          } else {
+            console.log('[Client] No server data, keeping local');
           }
         } catch (error: any) {
-          console.error('[Client] GET request failed:', error);
-          console.error('[Client] Error details:', {
-            message: error.message,
-            response: error.response?.data,
-            status: error.response?.status,
-          });
+          console.error('[Client] GET request failed:', error.message);
+          // Оставляем данные из localStorage
         }
       }
       
-      // Fallback на localStorage
-      const saved = localStorage.getItem('potok_progress');
-      if (saved) {
-        console.log('[Client] Loading from localStorage (fallback)');
-        setCheckedItems(JSON.parse(saved));
-      } else {
-        console.log('[Client] No saved progress found');
-      }
       console.log('[Client] === LOAD PROGRESS END ===');
     };
 
     // Небольшая задержка, чтобы Telegram WebApp успел загрузиться
-    const timer = setTimeout(loadProgress, 100);
-    return () => clearTimeout(timer);
-  }, [isTelegram, telegramUser?.id]);
+    const timer = setTimeout(loadProgress, 200);
+    
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
+  }, []); // Загружаем только один раз при монтировании
 
-  // Save progress whenever checkedItems changes
+  // Save progress to localStorage whenever checkedItems changes
   useEffect(() => {
-    // Всегда сохраняем в localStorage как backup
-    localStorage.setItem('potok_progress', JSON.stringify(checkedItems));
-
-    // Для Telegram пользователей также сохраняем на сервер
-    if (isTelegram && telegramUser?.id) {
-      const saveToServer = async () => {
-        try {
-          const itemsCount = Object.keys(checkedItems).length;
-          console.log('[Client] Saving progress to server:', { userId: telegramUser.id, itemsCount });
-          await axios.post('/api/progress', {
-            userId: String(telegramUser.id),
-            checkedItems,
-          });
-          console.log('[Client] Progress saved successfully');
-        } catch (error) {
-          console.error('[Client] Failed to save progress to server:', error);
-        }
-      };
-
-      // Debounce: сохраняем через 500ms после последнего изменения
-      const timeoutId = setTimeout(saveToServer, 500);
-      return () => clearTimeout(timeoutId);
+    // Сохраняем в localStorage только если есть изменения
+    if (Object.keys(checkedItems).length > 0) {
+      console.log('[Client] Saving to localStorage:', Object.keys(checkedItems).length, 'items');
+      localStorage.setItem('potok_progress', JSON.stringify(checkedItems));
     }
-  }, [checkedItems, isTelegram, telegramUser?.id]);
+  }, [checkedItems]);
 
   const togglePractice = (id: string) => {
     setCheckedItems(prev => ({
@@ -280,31 +240,60 @@ export default function Home() {
     </div>
   );
 
+  // Настройка кнопки "Отправить" для синхронизации
   useEffect(() => {
     if (!isTelegram || !webApp) return;
-    if (!globalPercent) {
+    
+    // Показываем кнопку только если есть прогресс
+    const hasProgress = Object.keys(checkedItems).length > 0;
+    
+    if (!hasProgress) {
       webApp.MainButton.hide();
       return;
     }
 
-    configureMainButton({ text: `Отправить ${globalPercent}%`, isVisible: true });
-    const unsubscribe = registerMainButtonClick?.(() => {
-      sendPayload({
-        type: 'progress_update',
-        progress: {
-          percent: globalPercent,
-          completed: stats.totals.completed,
-          total: stats.totals.total,
-        },
-        payload: {
-          checkedItems,
-        },
-        timestamp: Date.now(),
-      });
-      // Закрываем приложение после отправки данных
-      setTimeout(() => {
-        webApp?.close();
-      }, 100);
+    configureMainButton({ text: `Сохранить и синхронизировать ${globalPercent}%`, isVisible: true });
+    
+    const unsubscribe = registerMainButtonClick?.(async () => {
+      try {
+        // 1. Сохраняем в localStorage
+        localStorage.setItem('potok_progress', JSON.stringify(checkedItems));
+        console.log('[Client] Saved to localStorage');
+        
+        // 2. Сохраняем на сервер (если есть userId)
+        const userId = telegramUser?.id || window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+        if (userId) {
+          console.log('[Client] Syncing to server for userId:', userId);
+          await axios.post('/api/progress', {
+            userId: String(userId),
+            checkedItems,
+          });
+          console.log('[Client] Synced to server successfully');
+        }
+        
+        // 3. Отправляем данные в бот
+        sendPayload({
+          type: 'progress_update',
+          progress: {
+            percent: globalPercent,
+            completed: stats.totals.completed,
+            total: stats.totals.total,
+          },
+          payload: {
+            checkedItems,
+          },
+          timestamp: Date.now(),
+        });
+        
+        // 4. Показываем уведомление и закрываем
+        webApp.showAlert('Прогресс сохранён и синхронизирован!');
+        setTimeout(() => {
+          webApp?.close();
+        }, 500);
+      } catch (error) {
+        console.error('[Client] Failed to sync:', error);
+        webApp.showAlert('Ошибка синхронизации. Данные сохранены локально.');
+      }
     });
 
     return () => {
@@ -320,6 +309,7 @@ export default function Home() {
     sendPayload,
     stats.totals.completed,
     stats.totals.total,
+    telegramUser?.id,
     webApp,
   ]);
 
