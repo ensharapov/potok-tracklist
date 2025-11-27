@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import axios from 'axios';
 import { useTelegramWebApp } from '@/hooks/useTelegramWebApp';
@@ -75,12 +75,12 @@ const practices: Practice[] = [
 const moduleOrder = ['setup', 'prep', 'module1', 'module2', 'module3', 'module4'] as const;
 
 const moduleMeta: Record<(typeof moduleOrder)[number], { title: string; tagline: string; accent: string }> = {
-  setup: { title: 'НАСТРОЙКА НА РАБОТУ В ПОТОКЕ', tagline: 'Подготовь состояние', accent: 'from-green-400 to-green-500' },
-  prep: { title: 'ПРЕДВАРИТЕЛЬНОЕ ЗАДАНИЕ', tagline: 'Задай намерение', accent: 'from-green-500 to-emerald-500' },
-  module1: { title: 'МОДУЛЬ I: НАБОР ЭНЕРГИИ', tagline: 'Разгоняем мощность', accent: 'from-emerald-500 to-green-600' },
-  module2: { title: 'МОДУЛЬ II: ИССЛЕДОВАНИЕ ПОТЕНЦИАЛА', tagline: 'Исследуем себя', accent: 'from-green-600 to-teal-500' },
-  module3: { title: 'МОДУЛЬ III: ВЫБОР НАПРАВЛЕНИЯ', tagline: 'Фокусируем намерение', accent: 'from-teal-500 to-cyan-500' },
-  module4: { title: 'МОДУЛЬ IV: ПРИВЫЧКА ДЕЛАТЬ', tagline: 'Фиксируем результат', accent: 'from-cyan-500 to-blue-500' },
+  setup: { title: 'НАСТРОЙКА НА РАБОТУ В ПОТОКЕ', tagline: 'Подготовь состояние', accent: 'from-rose-500 to-red-500' },
+  prep: { title: 'ПРЕДВАРИТЕЛЬНОЕ ЗАДАНИЕ', tagline: 'Задай намерение', accent: 'from-red-500 to-orange-500' },
+  module1: { title: 'МОДУЛЬ I: НАБОР ЭНЕРГИИ', tagline: 'Разгоняем мощность', accent: 'from-orange-500 to-amber-500' },
+  module2: { title: 'МОДУЛЬ II: ИССЛЕДОВАНИЕ ПОТЕНЦИАЛА', tagline: 'Исследуем себя', accent: 'from-amber-500 to-emerald-500' },
+  module3: { title: 'МОДУЛЬ III: ВЫБОР НАПРАВЛЕНИЯ', tagline: 'Фокусируем намерение', accent: 'from-emerald-500 to-sky-500' },
+  module4: { title: 'МОДУЛЬ IV: ПРИВЫЧКА ДЕЛАТЬ', tagline: 'Фиксируем результат', accent: 'from-sky-500 to-indigo-500' },
 };
 
 const PracticeItem = ({ practice, checked, onToggle }: { practice: Practice; checked: boolean; onToggle: () => void }) => (
@@ -248,31 +248,41 @@ export default function Home() {
       let total = items.length;
       
       if (moduleKey === 'module1') {
-        // Проверяем, есть ли хотя бы один день из 21-дневной практики
-        const practice21Days = Array.from({ length: 21 }, (_, i) => `mod1_5_day_${i + 1}`);
-        const hasAnyDay = practice21Days.some(dayKey => checkedItems[dayKey]);
-        const hasPractice = checkedItems['mod1_5'] || hasAnyDay;
-        
-        // Считаем остальные практики
+        // Убираем mod1_5 из списка практик модуля 1
         const otherPractices = items.filter(p => p.id !== 'mod1_5');
         completed = otherPractices.filter(p => checkedItems[p.id]).length;
+        total = otherPractices.length;
         
-        // Если есть хотя бы один день - считаем практику выполненной
-        if (hasPractice) {
+        // Проверяем, все ли 21 день выполнены без пропусков
+        const practice21Days = Array.from({ length: 21 }, (_, i) => `mod1_5_day_${i + 1}`);
+        const allDaysCompleted = practice21Days.every(dayKey => checkedItems[dayKey]);
+        const hasPractice = checkedItems['mod1_5'];
+        
+        // Если все 21 день выполнены - считаем практику выполненной
+        if (allDaysCompleted || hasPractice) {
           completed++;
+          total++;
         }
+        
+        return {
+          key: moduleKey,
+          total,
+          completed,
+          percent: total ? Math.round((completed / total) * 100) : 0,
+          main: otherPractices.filter(p => !p.isBonus),
+          bonus: otherPractices.filter(p => p.isBonus),
+        };
       } else {
         completed = items.filter(practice => checkedItems[practice.id]).length;
+        return {
+          key: moduleKey,
+          total,
+          completed,
+          percent: total ? Math.round((completed / total) * 100) : 0,
+          main: items.filter(p => !p.isBonus),
+          bonus: items.filter(p => p.isBonus),
+        };
       }
-      
-      return {
-        key: moduleKey,
-        total,
-        completed,
-        percent: total ? Math.round((completed / total) * 100) : 0,
-        main: items.filter(p => !p.isBonus),
-        bonus: items.filter(p => p.isBonus),
-      };
     });
 
     const totals = moduleStats.reduce(
@@ -289,7 +299,7 @@ export default function Home() {
 
   const globalPercent = stats.totals.total ? Math.round((stats.totals.completed / stats.totals.total) * 100) : 0;
 
-  const ProgressBar = ({ percent, accent = 'from-green-500 to-emerald-500' }: { percent: number; accent?: string }) => (
+  const ProgressBar = ({ percent, accent = 'from-rose-500 to-red-500' }: { percent: number; accent?: string }) => (
     <div className="h-3 w-full rounded-full bg-gray-100 overflow-hidden">
       <div
         className={`h-full bg-gradient-to-r ${accent} transition-all duration-500`}
@@ -390,9 +400,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#fff9f8] to-white dark:from-gray-900 dark:to-gray-800 flex flex-col">
-      <div className="bg-white dark:bg-gray-800 border-b-2 border-green-600 dark:border-green-500 px-6 py-8 text-center shadow-sm">
+      <div className="bg-white dark:bg-gray-800 border-b-2 border-red-600 dark:border-red-500 px-6 py-8 text-center shadow-sm">
         <h1 className="text-5xl font-black text-black dark:text-white mb-2 tracking-[0.2em]">ПОТОК</h1>
-        <p className="text-xl text-green-600 dark:text-green-400 font-semibold">Чтоб глаза горели и деньги были</p>
+        <p className="text-xl text-red-600 dark:text-red-400 font-semibold">Чтоб глаза горели и деньги были</p>
         {isTelegram && telegramUser && (
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">
             Telegram WebApp активен · {telegramUser.first_name} {telegramUser.last_name ?? ''}
@@ -403,7 +413,7 @@ export default function Home() {
       <div className="flex-1 max-w-5xl mx-auto w-full px-6 py-10 space-y-10">
         <div className="bg-black dark:bg-gray-900 text-white rounded-3xl p-6 shadow-2xl relative overflow-hidden">
           <div className="absolute inset-y-0 right-0 opacity-40 pointer-events-none">
-            <div className="w-72 h-72 bg-green-500 blur-[140px]" />
+            <div className="w-72 h-72 bg-red-500 blur-[140px]" />
           </div>
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 relative z-10">
             <div className="flex items-end gap-3">
@@ -413,102 +423,142 @@ export default function Home() {
               </span>
             </div>
             <div className="w-full lg:max-w-sm">
-              <ProgressBar percent={globalPercent} accent="from-green-500 to-emerald-400" />
+              <ProgressBar percent={globalPercent} accent="from-red-500 to-orange-400" />
               <p className="text-xs text-white/60 mt-2">Каждый чекбокс — топливо для следующего рывка</p>
             </div>
           </div>
         </div>
 
         <div className="space-y-6">
-          {stats.moduleStats.map(module => (
-            <div
-              key={module.key}
-              className="bg-white/95 dark:bg-gray-800/95 backdrop-blur rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden transition-shadow hover:shadow-xl"
-            >
-              <button
-                className="w-full flex items-center justify-between gap-6 px-6 py-5 text-left"
-                onClick={() => {
-                  setOpenModule(module.key);
-                  // Сохраняем последний открытый модуль
-                  localStorage.setItem('potok_last_module', module.key);
-                }}
+          {stats.moduleStats.map((module, index) => (
+            <React.Fragment key={module.key}>
+              <div
+                className="bg-white/95 dark:bg-gray-800/95 backdrop-blur rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden transition-shadow hover:shadow-xl"
               >
-                <div>
-                  <p className="text-xs uppercase text-gray-500 dark:text-gray-400 tracking-[0.3em] mb-1">{moduleMeta[module.key].tagline}</p>
-                  <h2 className="text-2xl font-black text-gray-900 dark:text-white">{moduleMeta[module.key].title}</h2>
-                </div>
-                <div className="flex flex-col items-end">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">готово</p>
-                  <p className="text-2xl font-black text-gray-900 dark:text-white">
-                    {module.completed}
-                    <span className="text-lg text-gray-400 dark:text-gray-500">/{module.total}</span>
-                  </p>
-                </div>
-              </button>
-
-              <div className="px-6 pb-6">
-                <ProgressBar percent={module.percent} accent={moduleMeta[module.key].accent} />
-
-                <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mt-3">
-                  <span>{module.percent}% модуля</span>
-                  <span>{module.main.length} обязательных • {module.bonus.length} бонусов</span>
-                </div>
-
-                {openModule === module.key && (
-                  <div className="mt-6 space-y-6">
-                    <div className="space-y-1">
-                      {module.main.map(practice => {
-                        // Специальная обработка для 21-дневной практики
-                        if (practice.id === 'mod1_5') {
-                          const userId = telegramUser?.id || window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-                          return (
-                            <DailyPractice21
-                              key={practice.id}
-                              practiceId={practice.id}
-                              practiceName={practice.name}
-                              practiceLink={practice.link}
-                              userId={userId}
-                              checkedItems={checkedItems}
-                              onToggle={togglePractice}
-                            />
-                          );
-                        }
-
-          return (
-                  <PracticeItem
-                    key={practice.id}
-                    practice={practice}
-                    checked={checkedItems[practice.id] || false}
-                    onToggle={() => togglePractice(practice.id)}
-                  />
-                        );
-                      })}
-              </div>
-
-                    {module.bonus.length > 0 && (
-                      <div className="border-t border-dashed border-gray-200 dark:border-gray-700 pt-4">
-                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2 tracking-widest">Бонусы на выходные</p>
-                  <div className="space-y-1">
-                          {module.bonus.map(practice => (
-                      <PracticeItem
-                        key={practice.id}
-                        practice={practice}
-                        checked={checkedItems[practice.id] || false}
-                        onToggle={() => togglePractice(practice.id)}
-                      />
-                    ))}
+                <button
+                  className="w-full flex items-center justify-between gap-6 px-6 py-5 text-left"
+                  onClick={() => {
+                    setOpenModule(module.key);
+                    // Сохраняем последний открытый модуль
+                    localStorage.setItem('potok_last_module', module.key);
+                  }}
+                >
+                  <div>
+                    <p className="text-xs uppercase text-gray-500 dark:text-gray-400 tracking-[0.3em] mb-1">{moduleMeta[module.key].tagline}</p>
+                    <h2 className="text-2xl font-black text-gray-900 dark:text-white">{moduleMeta[module.key].title}</h2>
                   </div>
+                  <div className="flex flex-col items-end">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">готово</p>
+                    <p className="text-2xl font-black text-gray-900 dark:text-white">
+                      {module.completed}
+                      <span className="text-lg text-gray-400 dark:text-gray-500">/{module.total}</span>
+                    </p>
+                  </div>
+                </button>
+
+                <div className="px-6 pb-6">
+                  <ProgressBar percent={module.percent} accent={moduleMeta[module.key].accent} />
+
+                  <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mt-3">
+                    <span>{module.percent}% модуля</span>
+                    <span>{module.main.length} обязательных • {module.bonus.length} бонусов</span>
+                  </div>
+
+                  {openModule === module.key && (
+                    <div className="mt-6 space-y-6">
+                      <div className="space-y-1">
+                        {module.main.map(practice => (
+                          <PracticeItem
+                            key={practice.id}
+                            practice={practice}
+                            checked={checkedItems[practice.id] || false}
+                            onToggle={() => togglePractice(practice.id)}
+                          />
+                        ))}
+                        
+                        {/* Чекбокс для практики 21 день - доступен только после выполнения всех дней */}
+                        {module.key === 'module1' && (() => {
+                          const practice21Days = Array.from({ length: 21 }, (_, i) => `mod1_5_day_${i + 1}`);
+                          const allDaysCompleted = practice21Days.every(dayKey => checkedItems[dayKey]);
+                          const practice21 = practices.find(p => p.id === 'mod1_5');
+                          if (!practice21) return null;
+                          
+                          return (
+                            <div className="flex items-start gap-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/50 px-2 rounded transition-colors">
+                              <Checkbox
+                                id="mod1_5"
+                                checked={checkedItems['mod1_5'] || false}
+                                onCheckedChange={() => {
+                                  if (allDaysCompleted) {
+                                    togglePractice('mod1_5');
+                                  }
+                                }}
+                                disabled={!allDaysCompleted}
+                                className="mt-1 flex-shrink-0"
+                              />
+                              <label
+                                htmlFor="mod1_5"
+                                className={`flex-1 text-sm leading-relaxed ${
+                                  allDaysCompleted
+                                    ? 'text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 cursor-pointer'
+                                    : 'text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                                }`}
+                              >
+                                {practice21.name}
+                                {!allDaysCompleted && (
+                                  <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
+                                    (выполните все 21 день без пропусков)
+                                  </span>
+                                )}
+                              </label>
+                            </div>
+                          );
+                        })()}
+                      </div>
+
+                      {module.bonus.length > 0 && (
+                        <div className="border-t border-dashed border-gray-200 dark:border-gray-700 pt-4">
+                          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2 tracking-widest">Бонусы на выходные</p>
+                          <div className="space-y-1">
+                            {module.bonus.map(practice => (
+                              <PracticeItem
+                                key={practice.id}
+                                practice={practice}
+                                checked={checkedItems[practice.id] || false}
+                                onToggle={() => togglePractice(practice.id)}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-                )}
               </div>
-            </div>
+              
+              {/* Вставляем практику 21 день между модулями 1 и 2 */}
+              {module.key === 'module1' && (
+                <DailyPractice21
+                  practiceId="mod1_5"
+                  practiceName="ДНЕВНИК 21 день - Тренажёр"
+                  practiceLink="https://t.me/c/2429484344/218"
+                  userId={telegramUser?.id || window.Telegram?.WebApp?.initDataUnsafe?.user?.id}
+                  checkedItems={checkedItems}
+                  onToggle={togglePractice}
+                  onReset={() => {
+                    // Сбрасываем основной чекбокс практики
+                    if (checkedItems['mod1_5']) {
+                      togglePractice('mod1_5');
+                    }
+                  }}
+                />
+              )}
+            </React.Fragment>
           ))}
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 border-t-2 border-green-600 dark:border-green-500 py-5 text-center">
+      <div className="bg-white dark:bg-gray-800 border-t-2 border-red-600 dark:border-red-500 py-5 text-center">
         <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-[0.5em]">
           Только делание идёт в счёт
         </p>

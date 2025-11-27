@@ -7,6 +7,7 @@ interface DailyPractice21Props {
   userId?: string | number;
   checkedItems: Record<string, boolean>;
   onToggle: (dayKey: string) => void;
+  onReset?: () => void;
 }
 
 export function DailyPractice21({
@@ -16,6 +17,7 @@ export function DailyPractice21({
   userId,
   checkedItems,
   onToggle,
+  onReset,
 }: DailyPractice21Props) {
   const [startDate, setStartDate] = useState<Date | null>(null);
 
@@ -50,6 +52,23 @@ export function DailyPractice21({
       }
     }
 
+    // Проверяем, все ли дни выполнены без пропусков (последовательно с первого дня)
+    let allDaysCompletedWithoutGaps = false;
+    if (completed === 21) {
+      // Проверяем, что все дни от 1 до последнего выполнены
+      allDaysCompletedWithoutGaps = days.every(day => checkedItems[day.key]);
+    } else if (completed > 0) {
+      // Находим первый выполненный день
+      const firstCompletedIndex = days.findIndex(day => checkedItems[day.key]);
+      if (firstCompletedIndex !== -1) {
+        // Проверяем, что все дни от первого выполненного до последнего выполненного выполнены
+        const lastCompletedIndex = days.length - 1 - days.slice().reverse().findIndex(day => checkedItems[day.key]);
+        allDaysCompletedWithoutGaps = days
+          .slice(firstCompletedIndex, lastCompletedIndex + 1)
+          .every(day => checkedItems[day.key]);
+      }
+    }
+
     // Вычисляем текущий день (если есть дата начала)
     let currentDay = null;
     if (startDate) {
@@ -64,7 +83,7 @@ export function DailyPractice21({
       }
     }
 
-    return { completed, percent, streak, currentDay };
+    return { completed, percent, streak, currentDay, allDaysCompletedWithoutGaps };
   }, [days, checkedItems, startDate]);
 
   // Обработчик начала практики
@@ -95,42 +114,77 @@ export function DailyPractice21({
     return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
   };
 
+  // Обработчик сброса
+  const handleReset = () => {
+    if (window.confirm('Вы уверены, что хотите сбросить прогресс 21-дневной практики? Все отметки будут удалены.')) {
+      // Удаляем все дни
+      days.forEach(day => {
+        if (checkedItems[day.key]) {
+          onToggle(day.key);
+        }
+      });
+      // Удаляем дату начала
+      localStorage.removeItem(`${practiceId}_start_date`);
+      setStartDate(null);
+      // Вызываем callback для сброса основного чекбокса
+      if (onReset) {
+        onReset();
+      }
+    }
+  };
+
   return (
-    <div className="border-2 border-green-200 dark:border-green-700 rounded-2xl bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-6 mb-6">
-      {/* Заголовок с ссылкой */}
-      <div className="mb-4">
-        <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">Дневник 21 день</h3>
-        {practiceLink && (
-          <a
-            href={practiceLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 underline font-medium"
+    <div className="border-2 border-orange-200 dark:border-orange-700 rounded-2xl bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 p-6 mb-6">
+      {/* Заголовок с ссылкой и кнопкой сброса */}
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div className="flex-1">
+          <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">Дневник 21 день</h3>
+          {practiceLink && (
+            <a
+              href={practiceLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 underline font-medium"
+            >
+              Открыть чат для сдачи отчета →
+            </a>
+          )}
+        </div>
+        {startDate && (
+          <button
+            onClick={handleReset}
+            className="px-3 py-1.5 text-xs font-semibold text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800 transition-colors whitespace-nowrap"
+            title="Сбросить прогресс и начать заново"
           >
-            Открыть чат для сдачи отчета →
-          </a>
+            Сбросить
+          </button>
         )}
       </div>
 
       {/* Статистика */}
-      <div className="flex items-center gap-4 mb-4 text-sm">
+      <div className="flex items-center gap-4 mb-4 text-sm flex-wrap">
         {stats.streak > 0 && (
-          <span className="px-3 py-1 bg-green-500 dark:bg-green-600 text-white text-xs font-bold rounded-full">
+          <span className="px-3 py-1 bg-orange-500 dark:bg-orange-600 text-white text-xs font-bold rounded-full">
             🔥 {stats.streak} день{stats.streak === 1 ? '' : stats.streak < 5 ? 'а' : 'ей'}
           </span>
         )}
         <span className="text-gray-600 dark:text-gray-300">
-          День <span className="font-bold text-green-600 dark:text-green-400">{stats.currentDay || '?'}</span> из 21
+          День <span className="font-bold text-orange-600 dark:text-orange-400">{stats.currentDay || '?'}</span> из 21
         </span>
         <span className="text-gray-600 dark:text-gray-300">
-          Выполнено: <span className="font-bold text-green-600 dark:text-green-400">{stats.completed}/21</span>
+          Выполнено: <span className="font-bold text-orange-600 dark:text-orange-400">{stats.completed}/21</span>
         </span>
+        {stats.allDaysCompletedWithoutGaps && stats.completed === 21 && (
+          <span className="px-3 py-1 bg-green-500 dark:bg-green-600 text-white text-xs font-bold rounded-full">
+            ✓ Все дни выполнены!
+          </span>
+        )}
       </div>
 
       {/* Прогресс-бар */}
-      <div className="mb-6 h-2 bg-green-100 dark:bg-green-900/30 rounded-full overflow-hidden">
+      <div className="mb-6 h-2 bg-orange-100 dark:bg-orange-900/30 rounded-full overflow-hidden">
         <div
-          className="h-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-500"
+          className="h-full bg-gradient-to-r from-orange-500 to-amber-500 transition-all duration-500"
           style={{ width: `${stats.percent}%` }}
         />
       </div>
@@ -140,9 +194,9 @@ export function DailyPractice21({
         {days.map(({ day, key }) => {
           const isChecked = checkedItems[key] || false;
           const dayDate = getDayDate(day);
-          const isToday = dayDate && dayDate.toDateString() === new Date().toDateString();
-          const isPast = dayDate && dayDate < new Date() && dayDate.toDateString() !== new Date().toDateString();
-          const isFuture = dayDate && dayDate > new Date();
+          const isToday = dayDate ? dayDate.toDateString() === new Date().toDateString() : false;
+          const isPast = dayDate ? dayDate < new Date() && dayDate.toDateString() !== new Date().toDateString() : false;
+          const isFuture = dayDate ? dayDate > new Date() : false;
 
           return (
             <button
@@ -153,9 +207,9 @@ export function DailyPractice21({
                 relative w-10 h-10 rounded-full border-2 transition-all duration-200
                 flex items-center justify-center text-xs font-bold
                 ${isChecked 
-                  ? 'bg-gradient-to-br from-green-500 to-emerald-500 border-green-600 dark:border-green-400 text-white shadow-md scale-105' 
+                  ? 'bg-gradient-to-br from-orange-500 to-amber-500 border-orange-600 dark:border-orange-400 text-white shadow-md scale-105' 
                   : isToday
-                  ? 'bg-green-100 dark:bg-green-900/40 border-green-400 dark:border-green-500 border-dashed text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/60'
+                  ? 'bg-orange-100 dark:bg-orange-900/40 border-orange-400 dark:border-orange-500 border-dashed text-orange-700 dark:text-orange-300 hover:bg-orange-200 dark:hover:bg-orange-900/60'
                   : isPast
                   ? 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
                   : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600 text-gray-400 dark:text-gray-500 opacity-50 cursor-not-allowed'
@@ -167,12 +221,12 @@ export function DailyPractice21({
               {isChecked ? (
                 <span className="text-white text-sm">✓</span>
               ) : (
-                <span className={isToday ? 'text-green-700 dark:text-green-300' : isPast ? 'text-gray-500 dark:text-gray-400' : 'text-gray-400 dark:text-gray-500'}>
+                <span className={isToday ? 'text-orange-700 dark:text-orange-300' : isPast ? 'text-gray-500 dark:text-gray-400' : 'text-gray-400 dark:text-gray-500'}>
                   {day}
                 </span>
               )}
               {isToday && !isChecked && (
-                <span className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 text-[8px] text-green-600 dark:text-green-400 font-bold">
+                <span className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 text-[8px] text-orange-600 dark:text-orange-400 font-bold">
                   •
                 </span>
               )}
@@ -183,9 +237,25 @@ export function DailyPractice21({
 
       {/* Подсказка */}
       {!startDate && (
-        <div className="mt-4 p-3 bg-white dark:bg-gray-800 rounded-lg border border-green-200 dark:border-green-700 text-center">
+        <div className="mt-4 p-3 bg-white dark:bg-gray-800 rounded-lg border border-orange-200 dark:border-orange-700 text-center">
           <p className="text-xs text-gray-600 dark:text-gray-300">
             Отметь первый день, чтобы начать отсчёт 21 дня
+          </p>
+        </div>
+      )}
+      
+      {/* Информация о доступности чекбокса практики */}
+      {stats.completed === 21 && stats.allDaysCompletedWithoutGaps && (
+        <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-700 text-center">
+          <p className="text-xs text-green-700 dark:text-green-300 font-semibold">
+            ✓ Все 21 день выполнены без пропусков! Теперь можно отметить практику в модуле.
+          </p>
+        </div>
+      )}
+      {stats.completed > 0 && (!stats.allDaysCompletedWithoutGaps || stats.completed < 21) && (
+        <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-700 text-center">
+          <p className="text-xs text-yellow-700 dark:text-yellow-300">
+            ⚠️ Чтобы отметить практику в модуле, нужно выполнить все 21 день без пропусков
           </p>
         </div>
       )}
