@@ -1,6 +1,4 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Checkbox } from '@/components/ui/checkbox';
-import axios from 'axios';
 
 interface DailyPractice21Props {
   practiceId: string;
@@ -19,7 +17,6 @@ export function DailyPractice21({
   checkedItems,
   onToggle,
 }: DailyPractice21Props) {
-  const [isExpanded, setIsExpanded] = useState(false);
   const [startDate, setStartDate] = useState<Date | null>(null);
 
   // Генерируем ключи для 21 дня
@@ -78,7 +75,7 @@ export function DailyPractice21({
   };
 
   // Обработчик отметки дня
-  const handleDayToggle = (dayKey: string) => {
+  const handleDayToggle = (dayKey: string, day: number) => {
     // Если это первый день и дата начала не установлена - устанавливаем
     if (!startDate && !checkedItems[dayKey]) {
       handleStart();
@@ -100,126 +97,96 @@ export function DailyPractice21({
 
   return (
     <div className="border-2 border-orange-200 rounded-2xl bg-gradient-to-br from-orange-50 to-amber-50 p-6 mb-6">
-      {/* Компактный виджет */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <h3 className="text-lg font-bold text-gray-900">{practiceName}</h3>
-            {stats.streak > 0 && (
-              <span className="px-3 py-1 bg-orange-500 text-white text-xs font-bold rounded-full">
-                🔥 {stats.streak} день{stats.streak === 1 ? '' : stats.streak < 5 ? 'а' : 'ей'}
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-4 text-sm">
-            <span className="text-gray-600">
-              День <span className="font-bold text-orange-600">{stats.currentDay || '?'}</span> из 21
-            </span>
-            <span className="text-gray-600">
-              Выполнено: <span className="font-bold text-orange-600">{stats.completed}/21</span>
-            </span>
-          </div>
-          <div className="mt-3 h-2 bg-orange-100 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-orange-500 to-amber-500 transition-all duration-500"
-              style={{ width: `${stats.percent}%` }}
-            />
-          </div>
-        </div>
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="ml-4 p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-colors"
-          aria-label={isExpanded ? 'Свернуть' : 'Развернуть'}
-        >
-          {isExpanded ? '▲' : '▼'}
-        </button>
+      {/* Заголовок с ссылкой */}
+      <div className="mb-4">
+        <h3 className="text-xl font-black text-gray-900 mb-2">Дневник 21 день</h3>
+        {practiceLink && (
+          <a
+            href={practiceLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-orange-600 hover:text-orange-700 underline font-medium"
+          >
+            Открыть чат для сдачи отчета →
+          </a>
+        )}
       </div>
 
-      {/* Раскрывающийся календарь */}
-      {isExpanded && (
-        <div className="mt-6 pt-6 border-t border-orange-200">
-          {!startDate && (
-            <div className="mb-4 p-4 bg-white rounded-xl border border-orange-200">
-              <p className="text-sm text-gray-600 mb-3">
-                Начни 21-дневную практику! Отметь первый день, чтобы начать отсчёт.
-              </p>
-              <button
-                onClick={handleStart}
-                className="px-4 py-2 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition-colors"
-              >
-                Начать практику
-              </button>
-            </div>
-          )}
+      {/* Статистика */}
+      <div className="flex items-center gap-4 mb-4 text-sm">
+        {stats.streak > 0 && (
+          <span className="px-3 py-1 bg-orange-500 text-white text-xs font-bold rounded-full">
+            🔥 {stats.streak} день{stats.streak === 1 ? '' : stats.streak < 5 ? 'а' : 'ей'}
+          </span>
+        )}
+        <span className="text-gray-600">
+          День <span className="font-bold text-orange-600">{stats.currentDay || '?'}</span> из 21
+        </span>
+        <span className="text-gray-600">
+          Выполнено: <span className="font-bold text-orange-600">{stats.completed}/21</span>
+        </span>
+      </div>
 
-          <div className="grid grid-cols-7 gap-2">
-            {days.map(({ day, key }) => {
-              const isChecked = checkedItems[key] || false;
-              const dayDate = getDayDate(day);
-              const isToday = dayDate && dayDate.toDateString() === new Date().toDateString();
-              const isPast = dayDate && dayDate < new Date() && dayDate.toDateString() !== new Date().toDateString();
-              const isFuture = dayDate && dayDate > new Date();
+      {/* Прогресс-бар */}
+      <div className="mb-6 h-2 bg-orange-100 rounded-full overflow-hidden">
+        <div
+          className="h-full bg-gradient-to-r from-orange-500 to-amber-500 transition-all duration-500"
+          style={{ width: `${stats.percent}%` }}
+        />
+      </div>
 
-              return (
-                <div
-                  key={key}
-                  className={`
-                    relative aspect-square rounded-lg border-2 transition-all
-                    ${isChecked 
-                      ? 'bg-gradient-to-br from-orange-500 to-amber-500 border-orange-600' 
-                      : isToday
-                      ? 'bg-orange-100 border-orange-400 border-dashed'
-                      : isPast
-                      ? 'bg-gray-100 border-gray-300'
-                      : 'bg-white border-gray-200'
-                    }
-                    ${!isFuture ? 'cursor-pointer hover:scale-105' : 'opacity-50'}
-                  `}
-                  onClick={() => !isFuture && handleDayToggle(key)}
-                  title={dayDate ? formatDate(dayDate) : `День ${day}`}
-                >
-                  <div className="absolute inset-0 flex flex-col items-center justify-center p-1">
-                    <span className={`text-xs font-bold ${isChecked ? 'text-white' : 'text-gray-700'}`}>
-                      {day}
-                    </span>
-                    {isChecked && (
-                      <span className="text-white text-[10px] mt-0.5">✓</span>
-                    )}
-                    {isToday && !isChecked && (
-                      <span className="text-orange-600 text-[8px] mt-0.5">сегодня</span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+      {/* Цепочка из 21 кружка (Streak Chain) */}
+      <div className="flex flex-wrap gap-2 justify-center">
+        {days.map(({ day, key }) => {
+          const isChecked = checkedItems[key] || false;
+          const dayDate = getDayDate(day);
+          const isToday = dayDate && dayDate.toDateString() === new Date().toDateString();
+          const isPast = dayDate && dayDate < new Date() && dayDate.toDateString() !== new Date().toDateString();
+          const isFuture = dayDate && dayDate > new Date();
 
-          <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded bg-gradient-to-br from-orange-500 to-amber-500" />
-                <span>Выполнено</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded bg-orange-100 border-2 border-orange-400 border-dashed" />
-                <span>Сегодня</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded bg-gray-100 border-2 border-gray-300" />
-                <span>Пропущено</span>
-              </div>
-            </div>
-            {practiceLink && (
-              <a
-                href={practiceLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-orange-600 hover:text-orange-700 underline"
-              >
-                Открыть практику →
-              </a>
-            )}
-          </div>
+          return (
+            <button
+              key={key}
+              onClick={() => !isFuture && handleDayToggle(key, day)}
+              disabled={isFuture}
+              className={`
+                relative w-10 h-10 rounded-full border-2 transition-all duration-200
+                flex items-center justify-center text-xs font-bold
+                ${isChecked 
+                  ? 'bg-gradient-to-br from-orange-500 to-amber-500 border-orange-600 text-white shadow-md scale-105' 
+                  : isToday
+                  ? 'bg-orange-100 border-orange-400 border-dashed text-orange-700 hover:bg-orange-200'
+                  : isPast
+                  ? 'bg-gray-100 border-gray-300 text-gray-500 hover:bg-gray-200'
+                  : 'bg-white border-gray-200 text-gray-400 opacity-50 cursor-not-allowed'
+                }
+                ${!isFuture ? 'hover:scale-110 active:scale-95' : ''}
+              `}
+              title={dayDate ? `${day}. ${formatDate(dayDate)}` : `День ${day}`}
+            >
+              {isChecked ? (
+                <span className="text-white text-sm">✓</span>
+              ) : (
+                <span className={isToday ? 'text-orange-700' : isPast ? 'text-gray-500' : 'text-gray-400'}>
+                  {day}
+                </span>
+              )}
+              {isToday && !isChecked && (
+                <span className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 text-[8px] text-orange-600 font-bold">
+                  •
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Подсказка */}
+      {!startDate && (
+        <div className="mt-4 p-3 bg-white rounded-lg border border-orange-200 text-center">
+          <p className="text-xs text-gray-600">
+            Отметь первый день, чтобы начать отсчёт 21 дня
+          </p>
         </div>
       )}
     </div>
