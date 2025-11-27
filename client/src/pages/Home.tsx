@@ -484,42 +484,71 @@ export default function Home() {
 
         <div className="space-y-6">
           {stats.moduleStats.map((module, index) => {
-            // Показываем бонусные модули только если все основные модули завершены
             const isBonusModule = moduleMeta[module.key]?.isBonus;
-            if (isBonusModule && !stats.allMainModulesCompleted) {
-              return null;
-            }
+            const isDisabled = isBonusModule && !stats.allMainModulesCompleted;
             
             return (
             <React.Fragment key={module.key}>
               <div
-                className={`bg-white/95 dark:bg-gray-800/95 backdrop-blur rounded-3xl border shadow-sm overflow-hidden transition-shadow hover:shadow-xl ${
+                className={`bg-white/95 dark:bg-gray-800/95 backdrop-blur rounded-3xl border shadow-sm overflow-hidden transition-all ${
                   isBonusModule 
                     ? 'border-purple-300 dark:border-purple-700 border-2' 
                     : 'border-gray-100 dark:border-gray-700'
+                } ${
+                  isDisabled 
+                    ? 'opacity-60 cursor-not-allowed' 
+                    : 'hover:shadow-xl cursor-pointer'
                 }`}
               >
                 <button
-                  className="w-full flex items-center justify-between gap-6 px-6 py-5 text-left"
+                  className={`w-full flex items-center justify-between gap-6 px-6 py-5 text-left ${
+                    isDisabled ? 'cursor-not-allowed' : ''
+                  }`}
                   onClick={() => {
-                    setOpenModule(module.key);
-                    // Сохраняем последний открытый модуль
-                    localStorage.setItem('potok_last_module', module.key);
+                    if (!isDisabled) {
+                      setOpenModule(module.key);
+                      // Сохраняем последний открытый модуль
+                      localStorage.setItem('potok_last_module', module.key);
+                    }
                   }}
+                  disabled={isDisabled}
                 >
                   <div>
                     <p className={`text-xs uppercase tracking-[0.3em] mb-1 ${
                       isBonusModule 
-                        ? 'text-purple-600 dark:text-purple-400 font-bold' 
+                        ? isDisabled
+                          ? 'text-purple-400 dark:text-purple-600 font-bold'
+                          : 'text-purple-600 dark:text-purple-400 font-bold'
                         : 'text-gray-500 dark:text-gray-400'
                     }`}>
                       {isBonusModule ? '🎁 ' : ''}{moduleMeta[module.key].tagline}
                     </p>
-                    <h2 className="text-2xl font-black text-gray-900 dark:text-white">{moduleMeta[module.key].title}</h2>
+                    <h2 className={`text-2xl font-black ${
+                      isDisabled 
+                        ? 'text-gray-400 dark:text-gray-600' 
+                        : 'text-gray-900 dark:text-white'
+                    }`}>
+                      {moduleMeta[module.key].title}
+                    </h2>
+                    {isDisabled && (
+                      <p className="text-sm text-orange-600 dark:text-orange-400 mt-2 font-semibold">
+                        🔒 Завершите все основные модули, чтобы открыть
+                      </p>
+                    )}
                   </div>
                   <div className="flex flex-col items-end">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">готово</p>
-                    <p className="text-2xl font-black text-gray-900 dark:text-white">
+                    <p className={`text-sm ${
+                      isDisabled 
+                        ? 'text-gray-400 dark:text-gray-600' 
+                        : 'text-gray-500 dark:text-gray-400'
+                    }`}>
+                      готово
+                    </p>
+                    <p className={`text-2xl font-black ${
+                      isDisabled 
+                        ? 'text-gray-400 dark:text-gray-600' 
+                        : 'text-gray-900 dark:text-white'
+                    }`}>
                       {module.completed}
                       <span className="text-lg text-gray-400 dark:text-gray-500">/{module.total}</span>
                     </p>
@@ -534,7 +563,7 @@ export default function Home() {
                     <span>{module.main.length} обязательных • {module.bonus.length} бонусов</span>
                   </div>
 
-                  {openModule === module.key && (
+                  {openModule === module.key && !isDisabled && (
                     <div className="mt-6 space-y-6">
                       <div className="space-y-1">
                         {module.main.map(practice => (
