@@ -75,16 +75,16 @@ const practices: Practice[] = [
 const moduleOrder = ['setup', 'prep', 'module1', 'module2', 'module3', 'module4'] as const;
 
 const moduleMeta: Record<(typeof moduleOrder)[number], { title: string; tagline: string; accent: string }> = {
-  setup: { title: 'НАСТРОЙКА НА РАБОТУ В ПОТОКЕ', tagline: 'Подготовь состояние', accent: 'from-rose-500 to-red-500' },
-  prep: { title: 'ПРЕДВАРИТЕЛЬНОЕ ЗАДАНИЕ', tagline: 'Задай намерение', accent: 'from-red-500 to-orange-500' },
-  module1: { title: 'МОДУЛЬ I: НАБОР ЭНЕРГИИ', tagline: 'Разгоняем мощность', accent: 'from-orange-500 to-amber-500' },
-  module2: { title: 'МОДУЛЬ II: ИССЛЕДОВАНИЕ ПОТЕНЦИАЛА', tagline: 'Исследуем себя', accent: 'from-amber-500 to-emerald-500' },
-  module3: { title: 'МОДУЛЬ III: ВЫБОР НАПРАВЛЕНИЯ', tagline: 'Фокусируем намерение', accent: 'from-emerald-500 to-sky-500' },
-  module4: { title: 'МОДУЛЬ IV: ПРИВЫЧКА ДЕЛАТЬ', tagline: 'Фиксируем результат', accent: 'from-sky-500 to-indigo-500' },
+  setup: { title: 'НАСТРОЙКА НА РАБОТУ В ПОТОКЕ', tagline: 'Подготовь состояние', accent: 'from-green-400 to-green-500' },
+  prep: { title: 'ПРЕДВАРИТЕЛЬНОЕ ЗАДАНИЕ', tagline: 'Задай намерение', accent: 'from-green-500 to-emerald-500' },
+  module1: { title: 'МОДУЛЬ I: НАБОР ЭНЕРГИИ', tagline: 'Разгоняем мощность', accent: 'from-emerald-500 to-green-600' },
+  module2: { title: 'МОДУЛЬ II: ИССЛЕДОВАНИЕ ПОТЕНЦИАЛА', tagline: 'Исследуем себя', accent: 'from-green-600 to-teal-500' },
+  module3: { title: 'МОДУЛЬ III: ВЫБОР НАПРАВЛЕНИЯ', tagline: 'Фокусируем намерение', accent: 'from-teal-500 to-cyan-500' },
+  module4: { title: 'МОДУЛЬ IV: ПРИВЫЧКА ДЕЛАТЬ', tagline: 'Фиксируем результат', accent: 'from-cyan-500 to-blue-500' },
 };
 
 const PracticeItem = ({ practice, checked, onToggle }: { practice: Practice; checked: boolean; onToggle: () => void }) => (
-  <div className="flex items-start gap-3 py-2 hover:bg-gray-50 px-2 rounded transition-colors">
+  <div className="flex items-start gap-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/50 px-2 rounded transition-colors">
     <Checkbox
       id={practice.id}
       checked={checked}
@@ -95,7 +95,7 @@ const PracticeItem = ({ practice, checked, onToggle }: { practice: Practice; che
       href={practice.link}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex-1 text-sm text-blue-600 hover:text-blue-800 hover:underline leading-relaxed"
+      className="flex-1 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline leading-relaxed"
     >
       {practice.name}
     </a>
@@ -220,7 +220,7 @@ export default function Home() {
     // Сохраняем в localStorage только если есть изменения
     if (Object.keys(checkedItems).length > 0) {
       console.log('[Client] Saving to localStorage:', Object.keys(checkedItems).length, 'items');
-      localStorage.setItem('potok_progress', JSON.stringify(checkedItems));
+    localStorage.setItem('potok_progress', JSON.stringify(checkedItems));
     }
   }, [checkedItems]);
 
@@ -289,7 +289,7 @@ export default function Home() {
 
   const globalPercent = stats.totals.total ? Math.round((stats.totals.completed / stats.totals.total) * 100) : 0;
 
-  const ProgressBar = ({ percent, accent = 'from-rose-500 to-red-500' }: { percent: number; accent?: string }) => (
+  const ProgressBar = ({ percent, accent = 'from-green-500 to-emerald-500' }: { percent: number; accent?: string }) => (
     <div className="h-3 w-full rounded-full bg-gray-100 overflow-hidden">
       <div
         className={`h-full bg-gradient-to-r ${accent} transition-all duration-500`}
@@ -389,54 +389,33 @@ export default function Home() {
   ]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#fff9f8] to-white flex flex-col">
-      <div className="bg-white border-b-2 border-red-600 px-6 py-8 text-center shadow-sm">
-        <p className="text-sm uppercase tracking-[0.7em] text-gray-400 mb-3">интерактивный поток</p>
-        <h1 className="text-5xl font-black text-black mb-2 tracking-[0.2em]">ПОТОК</h1>
-        <p className="text-xl text-red-600 font-semibold">Чтоб глаза горели и деньги были</p>
+    <div className="min-h-screen bg-gradient-to-b from-[#fff9f8] to-white dark:from-gray-900 dark:to-gray-800 flex flex-col">
+      <div className="bg-white dark:bg-gray-800 border-b-2 border-green-600 dark:border-green-500 px-6 py-8 text-center shadow-sm">
+        <h1 className="text-5xl font-black text-black dark:text-white mb-2 tracking-[0.2em]">ПОТОК</h1>
+        <p className="text-xl text-green-600 dark:text-green-400 font-semibold">Чтоб глаза горели и деньги были</p>
         {isTelegram && telegramUser && (
-          <p className="text-sm text-gray-500 mt-3">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">
             Telegram WebApp активен · {telegramUser.first_name} {telegramUser.last_name ?? ''}
           </p>
         )}
       </div>
 
       <div className="flex-1 max-w-5xl mx-auto w-full px-6 py-10 space-y-10">
-        <div className="bg-black text-white rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+        <div className="bg-black dark:bg-gray-900 text-white rounded-3xl p-6 shadow-2xl relative overflow-hidden">
           <div className="absolute inset-y-0 right-0 opacity-40 pointer-events-none">
-            <div className="w-72 h-72 bg-red-500 blur-[140px]" />
+            <div className="w-72 h-72 bg-green-500 blur-[140px]" />
           </div>
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 relative z-10">
-            <div>
-              <p className="uppercase text-sm tracking-[0.4em] text-white/70 mb-2">общий прогресс</p>
-              <div className="flex items-end gap-3">
-                <span className="text-6xl font-black">{globalPercent}%</span>
-                <span className="text-sm text-white/70 mb-2">
-                  {stats.totals.completed} из {stats.totals.total} практик
-                </span>
-              </div>
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 relative z-10">
+            <div className="flex items-end gap-3">
+              <span className="text-5xl font-black">{globalPercent}%</span>
+              <span className="text-sm text-white/70 mb-1">
+                {stats.totals.completed} из {stats.totals.total} практик
+              </span>
             </div>
             <div className="w-full lg:max-w-sm">
-              <ProgressBar percent={globalPercent} accent="from-red-500 to-orange-400" />
-              <p className="text-xs text-white/60 mt-3">Каждый чекбокс — топливо для следующего рывка</p>
+              <ProgressBar percent={globalPercent} accent="from-green-500 to-emerald-400" />
+              <p className="text-xs text-white/60 mt-2">Каждый чекбокс — топливо для следующего рывка</p>
             </div>
-          </div>
-          <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4 text-white/80 text-sm">
-            {moduleOrder.map(moduleKey => {
-              const info = stats.moduleStats.find(stat => stat.key === moduleKey);
-              if (!info) return null;
-              return (
-                <div key={moduleKey} className="border border-white/10 rounded-2xl py-3 px-4 backdrop-blur bg-white/5">
-                  <p className="text-[11px] uppercase tracking-wide text-white/60">{moduleMeta[moduleKey].tagline}</p>
-                  <p className="text-lg font-semibold">
-                    {info.percent} <span className="text-xs text-white/60">%</span>
-                  </p>
-                  <p className="text-xs text-white/50">
-                    {info.completed}/{info.total} выполнено
-                  </p>
-                </div>
-              );
-            })}
           </div>
         </div>
 
@@ -444,7 +423,7 @@ export default function Home() {
           {stats.moduleStats.map(module => (
             <div
               key={module.key}
-              className="bg-white/95 backdrop-blur rounded-3xl border border-gray-100 shadow-sm overflow-hidden transition-shadow hover:shadow-xl"
+              className="bg-white/95 dark:bg-gray-800/95 backdrop-blur rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden transition-shadow hover:shadow-xl"
             >
               <button
                 className="w-full flex items-center justify-between gap-6 px-6 py-5 text-left"
@@ -455,14 +434,14 @@ export default function Home() {
                 }}
               >
                 <div>
-                  <p className="text-xs uppercase text-gray-500 tracking-[0.3em] mb-1">{moduleMeta[module.key].tagline}</p>
-                  <h2 className="text-2xl font-black text-gray-900">{moduleMeta[module.key].title}</h2>
+                  <p className="text-xs uppercase text-gray-500 dark:text-gray-400 tracking-[0.3em] mb-1">{moduleMeta[module.key].tagline}</p>
+                  <h2 className="text-2xl font-black text-gray-900 dark:text-white">{moduleMeta[module.key].title}</h2>
                 </div>
                 <div className="flex flex-col items-end">
-                  <p className="text-sm text-gray-500">готово</p>
-                  <p className="text-2xl font-black text-gray-900">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">готово</p>
+                  <p className="text-2xl font-black text-gray-900 dark:text-white">
                     {module.completed}
-                    <span className="text-lg text-gray-400">/{module.total}</span>
+                    <span className="text-lg text-gray-400 dark:text-gray-500">/{module.total}</span>
                   </p>
                 </div>
               </button>
@@ -470,7 +449,7 @@ export default function Home() {
               <div className="px-6 pb-6">
                 <ProgressBar percent={module.percent} accent={moduleMeta[module.key].accent} />
 
-                <div className="flex items-center justify-between text-xs text-gray-500 mt-3">
+                <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mt-3">
                   <span>{module.percent}% модуля</span>
                   <span>{module.main.length} обязательных • {module.bonus.length} бонусов</span>
                 </div>
@@ -494,34 +473,34 @@ export default function Home() {
                             />
                           );
                         }
-                        
-                        return (
-                          <PracticeItem
-                            key={practice.id}
-                            practice={practice}
-                            checked={checkedItems[practice.id] || false}
-                            onToggle={() => togglePractice(practice.id)}
-                          />
+
+          return (
+                  <PracticeItem
+                    key={practice.id}
+                    practice={practice}
+                    checked={checkedItems[practice.id] || false}
+                    onToggle={() => togglePractice(practice.id)}
+                  />
                         );
                       })}
-                    </div>
+              </div>
 
                     {module.bonus.length > 0 && (
-                      <div className="border-t border-dashed border-gray-200 pt-4">
-                        <p className="text-xs font-semibold text-gray-500 uppercase mb-2 tracking-widest">Бонусы на выходные</p>
-                        <div className="space-y-1">
+                      <div className="border-t border-dashed border-gray-200 dark:border-gray-700 pt-4">
+                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2 tracking-widest">Бонусы на выходные</p>
+                  <div className="space-y-1">
                           {module.bonus.map(practice => (
-                            <PracticeItem
-                              key={practice.id}
-                              practice={practice}
-                              checked={checkedItems[practice.id] || false}
-                              onToggle={() => togglePractice(practice.id)}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                      <PracticeItem
+                        key={practice.id}
+                        practice={practice}
+                        checked={checkedItems[practice.id] || false}
+                        onToggle={() => togglePractice(practice.id)}
+                      />
+                    ))}
                   </div>
+                </div>
+              )}
+            </div>
                 )}
               </div>
             </div>
@@ -529,8 +508,8 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="bg-white border-t-2 border-red-600 py-5 text-center">
-        <p className="text-xs font-semibold text-gray-600 uppercase tracking-[0.5em]">
+      <div className="bg-white dark:bg-gray-800 border-t-2 border-green-600 dark:border-green-500 py-5 text-center">
+        <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-[0.5em]">
           Только делание идёт в счёт
         </p>
       </div>

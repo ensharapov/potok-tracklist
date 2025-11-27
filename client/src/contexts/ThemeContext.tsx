@@ -22,9 +22,16 @@ export function ThemeProvider({
   switchable = false,
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(() => {
-    if (switchable) {
-      const stored = localStorage.getItem("theme");
-      return (stored as Theme) || defaultTheme;
+    // Автоматически определяем тему устройства
+    if (typeof window !== "undefined") {
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const systemTheme = prefersDark ? "dark" : "light";
+      
+      if (switchable) {
+        const stored = localStorage.getItem("theme");
+        return (stored as Theme) || systemTheme;
+      }
+      return systemTheme;
     }
     return defaultTheme;
   });
@@ -41,6 +48,26 @@ export function ThemeProvider({
       localStorage.setItem("theme", theme);
     }
   }, [theme, switchable]);
+
+  // Слушаем изменения системной темы
+  useEffect(() => {
+    if (!switchable && typeof window !== "undefined") {
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      const handleChange = (e: MediaQueryListEvent) => {
+        setTheme(e.matches ? "dark" : "light");
+      };
+      
+      // Современный способ
+      if (mediaQuery.addEventListener) {
+        mediaQuery.addEventListener("change", handleChange);
+        return () => mediaQuery.removeEventListener("change", handleChange);
+      } else {
+        // Fallback для старых браузеров
+        mediaQuery.addListener(handleChange);
+        return () => mediaQuery.removeListener(handleChange);
+      }
+    }
+  }, [switchable]);
 
   const toggleTheme = switchable
     ? () => {
