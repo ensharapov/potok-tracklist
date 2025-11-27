@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import axios from 'axios';
 import { useTelegramWebApp } from '@/hooks/useTelegramWebApp';
+import { DailyPractice21 } from '@/components/DailyPractice21';
 
 interface Practice {
   id: string;
@@ -103,7 +104,11 @@ const PracticeItem = ({ practice, checked, onToggle }: { practice: Practice; che
 
 export default function Home() {
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
-  const [openModule, setOpenModule] = useState<(typeof moduleOrder)[number]>('setup');
+  // Загружаем последний открытый модуль из localStorage
+  const [openModule, setOpenModule] = useState<(typeof moduleOrder)[number]>(() => {
+    const saved = localStorage.getItem('potok_last_module');
+    return (saved && moduleOrder.includes(saved as any)) ? (saved as typeof moduleOrder[number]) : 'setup';
+  });
   const {
     isTelegram,
     user: telegramUser,
@@ -237,12 +242,34 @@ export default function Home() {
   const stats = useMemo(() => {
     const moduleStats = moduleOrder.map(moduleKey => {
       const items = groupedPractices[moduleKey] ?? [];
-      const completed = items.filter(practice => checkedItems[practice.id]).length;
+      
+      // Для модуля 1: считаем 21-дневную практику как одну практику (если выполнено хотя бы 1 день)
+      let completed = 0;
+      let total = items.length;
+      
+      if (moduleKey === 'module1') {
+        // Проверяем, есть ли хотя бы один день из 21-дневной практики
+        const practice21Days = Array.from({ length: 21 }, (_, i) => `mod1_5_day_${i + 1}`);
+        const hasAnyDay = practice21Days.some(dayKey => checkedItems[dayKey]);
+        const hasPractice = checkedItems['mod1_5'] || hasAnyDay;
+        
+        // Считаем остальные практики
+        const otherPractices = items.filter(p => p.id !== 'mod1_5');
+        completed = otherPractices.filter(p => checkedItems[p.id]).length;
+        
+        // Если есть хотя бы один день - считаем практику выполненной
+        if (hasPractice) {
+          completed++;
+        }
+      } else {
+        completed = items.filter(practice => checkedItems[practice.id]).length;
+      }
+      
       return {
         key: moduleKey,
-        total: items.length,
+        total,
         completed,
-        percent: items.length ? Math.round((completed / items.length) * 100) : 0,
+        percent: total ? Math.round((completed / total) * 100) : 0,
         main: items.filter(p => !p.isBonus),
         bonus: items.filter(p => p.isBonus),
       };
@@ -421,7 +448,11 @@ export default function Home() {
             >
               <button
                 className="w-full flex items-center justify-between gap-6 px-6 py-5 text-left"
-                onClick={() => setOpenModule(module.key)}
+                onClick={() => {
+                  setOpenModule(module.key);
+                  // Сохраняем последний открытый модуль
+                  localStorage.setItem('potok_last_module', module.key);
+                }}
               >
                 <div>
                   <p className="text-xs uppercase text-gray-500 tracking-[0.3em] mb-1">{moduleMeta[module.key].tagline}</p>
@@ -447,14 +478,32 @@ export default function Home() {
                 {openModule === module.key && (
                   <div className="mt-6 space-y-6">
                     <div className="space-y-1">
-                      {module.main.map(practice => (
-                        <PracticeItem
-                          key={practice.id}
-                          practice={practice}
-                          checked={checkedItems[practice.id] || false}
-                          onToggle={() => togglePractice(practice.id)}
-                        />
-                      ))}
+                      {module.main.map(practice => {
+                        // Специальная обработка для 21-дневной практики
+                        if (practice.id === 'mod1_5') {
+                          const userId = telegramUser?.id || window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+                          return (
+                            <DailyPractice21
+                              key={practice.id}
+                              practiceId={practice.id}
+                              practiceName={practice.name}
+                              practiceLink={practice.link}
+                              userId={userId}
+                              checkedItems={checkedItems}
+                              onToggle={togglePractice}
+                            />
+                          );
+                        }
+                        
+                        return (
+                          <PracticeItem
+                            key={practice.id}
+                            practice={practice}
+                            checked={checkedItems[practice.id] || false}
+                            onToggle={() => togglePractice(practice.id)}
+                          />
+                        );
+                      })}
                     </div>
 
                     {module.bonus.length > 0 && (
