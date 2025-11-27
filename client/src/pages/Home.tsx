@@ -70,17 +70,61 @@ const practices: Practice[] = [
   { id: 'mod4_6', name: 'Празднование 🎉', link: 'https://t.me/c/2429484344/257', module: 'module4' },
   { id: 'mod4_7', name: 'Признание и присвоение результатов', link: 'https://t.me/c/2429484344/258', module: 'module4' },
   { id: 'mod4_bonus_2', name: 'Видео-квест: Сила уязвимости', link: 'https://t.me/c/2429484344/259', module: 'module4', isBonus: true },
+  
+  // БОНУСНЫЙ МОДУЛЬ 1: КАК УДЕРЖАТЬСЯ НА ПУТИ?
+  { id: 'bonus1_1', name: 'Инструкция себе', link: 'https://t.me/c/2621673691/11', module: 'bonus1' },
+  { id: 'bonus1_2', name: 'Голод к тренировке', link: 'https://t.me/c/2621673691/13', module: 'bonus1' },
+  { id: 'bonus1_3', name: 'Мотивационный лист', link: 'https://t.me/c/2621673691/14', module: 'bonus1' },
+  { id: 'bonus1_4', name: 'Аудиогид «Каждый день в предназначении»', link: 'https://t.me/c/2621673691/18', module: 'bonus1' },
+  
+  // БОНУСНЫЙ МОДУЛЬ 2: РАБОТА С ЭМОЦИЯМИ
+  { id: 'bonus2_1', name: 'Сквозная практика', link: 'https://t.me/c/2553266044/4', module: 'bonus2' },
+  { id: 'bonus2_2', name: 'Дыхание по квадрату', link: 'https://t.me/c/2553266044/6', module: 'bonus2' },
+  { id: 'bonus2_3', name: 'Как вы расслабляетесь', link: 'https://t.me/c/2553266044/9', module: 'bonus2' },
+  { id: 'bonus2_4', name: 'Техника "Охранник"', link: 'https://t.me/c/2553266044/10', module: 'bonus2' },
+  { id: 'bonus2_5', name: 'Описание обиды', link: 'https://t.me/c/2553266044/11', module: 'bonus2' },
+  { id: 'bonus2_6', name: 'Проработка обиды', link: 'https://t.me/c/2553266044/12', module: 'bonus2' },
+  
+  // БОНУСНЫЙ МОДУЛЬ 3: РАБОТА С УБЕЖДЕНИЯМИ
+  { id: 'bonus3_0', name: 'Вводная часть', link: 'https://t.me/c/2392642774/6', module: 'bonus3' },
+  { id: 'bonus3_1', name: 'Сочинение ✍️', link: 'https://t.me/c/2392642774/7', module: 'bonus3' },
+  { id: 'bonus3_2', name: 'Список ограничений', link: 'https://t.me/c/2392642774/8', module: 'bonus3' },
+  { id: 'bonus3_3', name: 'Расширение убеждения', link: 'https://t.me/c/2392642774/9', module: 'bonus3' },
+  { id: 'bonus3_4', name: 'Аудиогид «УБЕЖДЕНИЯ»', link: 'https://t.me/c/2392642774/10', module: 'bonus3' },
+  
+  // БОНУСНЫЙ МОДУЛЬ 4: МУЖСКОЕ И ЖЕНСКОЕ ПРЕДНАЗНАЧЕНИЕ
+  { id: 'bonus4_0', name: '7 каналов взаимодействия между мужчиной и женщиной', link: 'https://t.me/c/2739965403/5', module: 'bonus4' },
+  { id: 'bonus4_1', name: '3 тарифа поведения', link: 'https://t.me/c/2739965403/6', module: 'bonus4' },
+  { id: 'bonus4_2', name: 'Задание 1 | Аксиомы', link: 'https://t.me/c/2739965403/7', module: 'bonus4' },
+  { id: 'bonus4_3', name: 'ТЕОРИЯ. ПЕРВЫЙ УРОВЕНЬ', link: 'https://t.me/c/2739965403/27', module: 'bonus4' },
+  { id: 'bonus4_4', name: 'Задание 2 | Невербальные просьбы', link: 'https://t.me/c/2739965403/28', module: 'bonus4' },
+  { id: 'bonus4_5', name: 'ТЕОРИЯ. ВТОРОЙ УРОВЕНЬ', link: 'https://t.me/c/2739965403/29', module: 'bonus4' },
+  { id: 'bonus4_6', name: 'Задание 3 | Комплименты и сюрпризы', link: 'https://t.me/c/2739965403/30', module: 'bonus4' },
+  { id: 'bonus4_7', name: 'ТЕОРИЯ. ТРЕТИЙ УРОВЕНЬ', link: 'https://t.me/c/2739965403/31', module: 'bonus4' },
+  { id: 'bonus4_8', name: 'Задание 4 | Практика на статус', link: 'https://t.me/c/2739965403/32', module: 'bonus4' },
+  { id: 'bonus4_9', name: 'ТЕОРИЯ. ЧЕТВЕРТЫЙ УРОВЕНЬ', link: 'https://t.me/c/2739965403/33', module: 'bonus4' },
+  { id: 'bonus4_10', name: 'Задание 5 | Любить партнера безусловно', link: 'https://t.me/c/2739965403/34', module: 'bonus4' },
+  { id: 'bonus4_11', name: 'ТЕОРИЯ. ПЯТЫЙ УРОВЕНЬ', link: 'https://t.me/c/2739965403/35', module: 'bonus4' },
+  { id: 'bonus4_12', name: 'Задание 6 | Грибы в ванной', link: 'https://t.me/c/2739965403/36', module: 'bonus4' },
+  { id: 'bonus4_13', name: 'ТЕОРИЯ. ШЕСТОЙ УРОВЕНЬ', link: 'https://t.me/c/2739965403/37', module: 'bonus4' },
+  { id: 'bonus4_14', name: 'Задание 7 | Видение будущего', link: 'https://t.me/c/2739965403/38', module: 'bonus4' },
+  { id: 'bonus4_15', name: '7 УРОВЕНЬ. ИТОГИ', link: 'https://t.me/c/2739965403/39', module: 'bonus4' },
+  { id: 'bonus4_16', name: 'ДЛЯ СВЯЗИ - окно, где можно обмениваться опытом и обратной связью, поддерживать друг друга в рамках данного модуля', link: 'https://t.me/c/2739965403/41', module: 'bonus4' },
 ];
 
-const moduleOrder = ['setup', 'prep', 'module1', 'module2', 'module3', 'module4'] as const;
+const moduleOrder = ['setup', 'prep', 'module1', 'module2', 'module3', 'module4', 'bonus1', 'bonus2', 'bonus3', 'bonus4'] as const;
 
-const moduleMeta: Record<(typeof moduleOrder)[number], { title: string; tagline: string; accent: string }> = {
+const moduleMeta: Record<(typeof moduleOrder)[number], { title: string; tagline: string; accent: string; isBonus?: boolean }> = {
   setup: { title: 'НАСТРОЙКА НА РАБОТУ В ПОТОКЕ', tagline: 'Подготовь состояние', accent: 'from-rose-500 to-red-500' },
   prep: { title: 'ПРЕДВАРИТЕЛЬНОЕ ЗАДАНИЕ', tagline: 'Задай намерение', accent: 'from-red-500 to-orange-500' },
   module1: { title: 'МОДУЛЬ I: НАБОР ЭНЕРГИИ', tagline: 'Разгоняем мощность', accent: 'from-orange-500 to-amber-500' },
   module2: { title: 'МОДУЛЬ II: ИССЛЕДОВАНИЕ ПОТЕНЦИАЛА', tagline: 'Исследуем себя', accent: 'from-amber-500 to-emerald-500' },
   module3: { title: 'МОДУЛЬ III: ВЫБОР НАПРАВЛЕНИЯ', tagline: 'Фокусируем намерение', accent: 'from-emerald-500 to-sky-500' },
   module4: { title: 'МОДУЛЬ IV: ПРИВЫЧКА ДЕЛАТЬ', tagline: 'Фиксируем результат', accent: 'from-sky-500 to-indigo-500' },
+  bonus1: { title: 'БОНУСНЫЙ МОДУЛЬ 1: КАК УДЕРЖАТЬСЯ НА ПУТИ?', tagline: 'Бонусный модуль', accent: 'from-purple-500 to-pink-500', isBonus: true },
+  bonus2: { title: 'БОНУСНЫЙ МОДУЛЬ 2: РАБОТА С ЭМОЦИЯМИ', tagline: 'Бонусный модуль', accent: 'from-pink-500 to-rose-500', isBonus: true },
+  bonus3: { title: 'БОНУСНЫЙ МОДУЛЬ 3: РАБОТА С УБЕЖДЕНИЯМИ', tagline: 'Бонусный модуль', accent: 'from-violet-500 to-purple-500', isBonus: true },
+  bonus4: { title: 'БОНУСНЫЙ МОДУЛЬ 4: МУЖСКОЕ И ЖЕНСКОЕ ПРЕДНАЗНАЧЕНИЕ', tagline: 'Бонусный модуль', accent: 'from-indigo-500 to-purple-500', isBonus: true },
 };
 
 const PracticeItem = ({ practice, checked, onToggle }: { practice: Practice; checked: boolean; onToggle: () => void }) => (
@@ -285,7 +329,9 @@ export default function Home() {
       }
     });
 
-    const totals = moduleStats.reduce(
+    // Подсчитываем общую статистику только для основных модулей
+    const mainModuleStats = moduleStats.filter(m => !moduleMeta[m.key]?.isBonus);
+    const totals = mainModuleStats.reduce(
       (acc, module) => {
         acc.completed += module.completed;
         acc.total += module.total;
@@ -294,7 +340,14 @@ export default function Home() {
       { completed: 0, total: 0 }
     );
 
-    return { moduleStats, totals };
+    // Проверяем, завершены ли все основные модули
+    const mainModules = ['setup', 'prep', 'module1', 'module2', 'module3', 'module4'];
+    const allMainModulesCompleted = mainModules.every(key => {
+      const module = moduleStats.find(m => m.key === key);
+      return module && module.percent === 100;
+    });
+
+    return { moduleStats, totals, allMainModulesCompleted };
   }, [checkedItems, groupedPractices]);
 
   const globalPercent = stats.totals.total ? Math.round((stats.totals.completed / stats.totals.total) * 100) : 0;
@@ -430,10 +483,21 @@ export default function Home() {
         </div>
 
         <div className="space-y-6">
-          {stats.moduleStats.map((module, index) => (
+          {stats.moduleStats.map((module, index) => {
+            // Показываем бонусные модули только если все основные модули завершены
+            const isBonusModule = moduleMeta[module.key]?.isBonus;
+            if (isBonusModule && !stats.allMainModulesCompleted) {
+              return null;
+            }
+            
+            return (
             <React.Fragment key={module.key}>
               <div
-                className="bg-white/95 dark:bg-gray-800/95 backdrop-blur rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden transition-shadow hover:shadow-xl"
+                className={`bg-white/95 dark:bg-gray-800/95 backdrop-blur rounded-3xl border shadow-sm overflow-hidden transition-shadow hover:shadow-xl ${
+                  isBonusModule 
+                    ? 'border-purple-300 dark:border-purple-700 border-2' 
+                    : 'border-gray-100 dark:border-gray-700'
+                }`}
               >
                 <button
                   className="w-full flex items-center justify-between gap-6 px-6 py-5 text-left"
@@ -444,7 +508,13 @@ export default function Home() {
                   }}
                 >
                   <div>
-                    <p className="text-xs uppercase text-gray-500 dark:text-gray-400 tracking-[0.3em] mb-1">{moduleMeta[module.key].tagline}</p>
+                    <p className={`text-xs uppercase tracking-[0.3em] mb-1 ${
+                      isBonusModule 
+                        ? 'text-purple-600 dark:text-purple-400 font-bold' 
+                        : 'text-gray-500 dark:text-gray-400'
+                    }`}>
+                      {isBonusModule ? '🎁 ' : ''}{moduleMeta[module.key].tagline}
+                    </p>
                     <h2 className="text-2xl font-black text-gray-900 dark:text-white">{moduleMeta[module.key].title}</h2>
                   </div>
                   <div className="flex flex-col items-end">
@@ -554,7 +624,8 @@ export default function Home() {
                 />
               )}
             </React.Fragment>
-          ))}
+            );
+          })}
         </div>
       </div>
 
