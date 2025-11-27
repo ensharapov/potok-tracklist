@@ -252,13 +252,6 @@ export function DailyPractice21({
           </p>
         </div>
       )}
-      {stats.completed > 0 && (!stats.allDaysCompletedWithoutGaps || stats.completed < 21) && (
-        <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-700 text-center">
-          <p className="text-xs text-yellow-700 dark:text-yellow-300">
-            ⚠️ Чтобы отметить практику в модуле, нужно выполнить все 21 день без пропусков
-          </p>
-        </div>
-      )}
     </div>
   );
 }

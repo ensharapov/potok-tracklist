@@ -487,7 +487,7 @@ export default function Home() {
                             <div className="flex items-start gap-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/50 px-2 rounded transition-colors">
                               <Checkbox
                                 id="mod1_5"
-                                checked={checkedItems['mod1_5'] || false}
+                                checked={allDaysCompleted && (checkedItems['mod1_5'] || false)}
                                 onCheckedChange={() => {
                                   if (allDaysCompleted) {
                                     togglePractice('mod1_5');
