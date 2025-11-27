@@ -168,12 +168,6 @@ export function DailyPractice21({
             🔥 {stats.streak} день{stats.streak === 1 ? '' : stats.streak < 5 ? 'а' : 'ей'}
           </span>
         )}
-        <span className="text-gray-600 dark:text-gray-300">
-          День <span className="font-bold text-orange-600 dark:text-orange-400">{stats.currentDay || '?'}</span> из 21
-        </span>
-        <span className="text-gray-600 dark:text-gray-300">
-          Выполнено: <span className="font-bold text-orange-600 dark:text-orange-400">{stats.completed}/21</span>
-        </span>
         {stats.allDaysCompletedWithoutGaps && stats.completed === 21 && (
           <span className="px-3 py-1 bg-green-500 dark:bg-green-600 text-white text-xs font-bold rounded-full">
             ✓ Все дни выполнены!
