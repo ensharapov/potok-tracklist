@@ -452,8 +452,8 @@ export default function Home() {
   ]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#fff9f8] to-white dark:from-gray-900 dark:to-gray-800 flex flex-col">
-      <div className="bg-white dark:bg-gray-800 border-b-2 border-red-600 dark:border-red-500 px-6 py-8 text-center shadow-sm">
+    <div className="min-h-screen bg-gradient-to-b from-[#fff9f8] to-white dark:from-black dark:to-black flex flex-col">
+      <div className="bg-white dark:bg-black border-b-2 border-red-600 dark:border-red-500 px-6 py-8 text-center shadow-sm">
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">Тренинг по методу Павла Кочкина</p>
         <h1 className="text-5xl font-black text-black dark:text-white mb-2 tracking-[0.2em]">ПОТОК</h1>
         <p className="text-xl text-red-600 dark:text-red-400 font-semibold">Чтоб глаза горели и деньги были</p>
@@ -465,7 +465,7 @@ export default function Home() {
       </div>
 
       <div className="flex-1 max-w-5xl mx-auto w-full px-6 py-10 space-y-10">
-        <div className="bg-black dark:bg-gray-900 text-white rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+        <div className="bg-black dark:bg-black text-white rounded-3xl p-6 shadow-2xl relative overflow-hidden border border-gray-800">
           <div className="absolute inset-y-0 right-0 opacity-40 pointer-events-none">
             <div className="w-72 h-72 bg-red-500 blur-[140px]" />
           </div>
@@ -484,7 +484,7 @@ export default function Home() {
         </div>
 
         {/* Карта всего пути */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
+        <div className="bg-white dark:bg-black rounded-2xl border border-gray-200 dark:border-gray-800 p-4 shadow-sm">
           <p className="text-xs uppercase text-gray-500 dark:text-gray-400 tracking-wider mb-3 text-center">Карта пути</p>
           <div className="flex flex-wrap justify-center gap-2">
             {stats.moduleStats.map((module) => {
@@ -493,27 +493,41 @@ export default function Home() {
               const isCompleted = module.percent === 100;
               
               return (
-                <div
+                <button
                   key={module.key}
+                  onClick={() => {
+                    if (!isDisabled) {
+                      setOpenModule(module.key);
+                      localStorage.setItem('potok_last_module', module.key);
+                      // Прокручиваем к модулю
+                      setTimeout(() => {
+                        const element = document.querySelector(`[data-module-key="${module.key}"]`);
+                        if (element) {
+                          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                      }, 100);
+                    }
+                  }}
                   className={`
                     relative px-3 py-1.5 rounded-lg text-xs font-semibold transition-all
                     ${isCompleted 
-                      ? 'bg-green-500 text-white' 
+                      ? 'bg-green-500 text-white hover:bg-green-600' 
                       : isDisabled
-                      ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 opacity-50'
+                      ? 'bg-gray-200 dark:bg-gray-900 text-gray-400 dark:text-gray-600 opacity-50 cursor-not-allowed'
                       : module.percent > 0
-                      ? 'bg-orange-200 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                      ? 'bg-orange-200 dark:bg-orange-900/40 text-orange-700 dark:text-orange-400 hover:bg-orange-300 dark:hover:bg-orange-900/60 cursor-pointer'
+                      : 'bg-gray-100 dark:bg-gray-900 text-gray-500 dark:text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800 cursor-pointer'
                     }
                   `}
                   title={`${moduleMeta[module.key].title}: ${module.percent}%`}
+                  disabled={isDisabled}
                 >
                   {isCompleted && '✓ '}
                   {moduleMeta[module.key].tagline}
                   {!isCompleted && module.percent > 0 && (
                     <span className="ml-1 text-[10px]">{module.percent}%</span>
                   )}
-                </div>
+                </button>
               );
             })}
           </div>
@@ -527,10 +541,11 @@ export default function Home() {
             return (
             <React.Fragment key={module.key}>
               <div
-                className={`bg-white/95 dark:bg-gray-800/95 backdrop-blur rounded-3xl border shadow-sm overflow-hidden transition-all ${
+                data-module-key={module.key}
+                className={`bg-white/95 dark:bg-black/95 backdrop-blur rounded-3xl border shadow-sm overflow-hidden transition-all ${
                   isBonusModule 
-                    ? 'border-purple-300 dark:border-purple-700 border-2' 
-                    : 'border-gray-100 dark:border-gray-700'
+                    ? 'border-purple-300 dark:border-purple-800 border-2' 
+                    : 'border-gray-100 dark:border-gray-800'
                 } ${
                   isDisabled 
                     ? 'opacity-60 cursor-not-allowed' 
@@ -653,7 +668,7 @@ export default function Home() {
                       </div>
 
                       {module.bonus.length > 0 && (
-                        <div className="border-t border-dashed border-gray-200 dark:border-gray-700 pt-4">
+                        <div className="border-t border-dashed border-gray-200 dark:border-gray-800 pt-4">
                           <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2 tracking-widest">Бонусы на выходные</p>
                           <div className="space-y-1">
                             {module.bonus.map(practice => (
@@ -695,7 +710,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 border-t-2 border-red-600 dark:border-red-500 py-5 text-center">
+      <div className="bg-white dark:bg-black border-t-2 border-red-600 dark:border-red-500 py-5 text-center">
         <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-[0.5em]">
           Только делание идёт в счёт
         </p>

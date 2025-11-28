@@ -240,8 +240,8 @@ export function DailyPractice21({
                   : isToday
                   ? 'bg-orange-100 dark:bg-orange-900/40 border-orange-400 dark:border-orange-500 border-dashed text-orange-700 dark:text-orange-300 hover:bg-orange-200 dark:hover:bg-orange-900/60'
                   : isPast
-                  ? 'bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
-                  : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600 text-gray-400 dark:text-gray-500 opacity-50 cursor-not-allowed'
+                  ? 'bg-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800'
+                  : 'bg-white dark:bg-black border-gray-200 dark:border-gray-800 text-gray-400 dark:text-gray-500 opacity-50 cursor-not-allowed'
                 }
                 ${!isFuture ? 'hover:scale-110 active:scale-95' : ''}
               `}
@@ -266,7 +266,7 @@ export function DailyPractice21({
 
       {/* Подсказка */}
       {!startDate && (
-        <div className="mt-4 p-3 bg-white dark:bg-gray-800 rounded-lg border border-orange-200 dark:border-orange-700 text-center">
+        <div className="mt-4 p-3 bg-white dark:bg-black rounded-lg border border-orange-200 dark:border-orange-800 text-center">
           <p className="text-xs text-gray-600 dark:text-gray-300">
             Отметь первый день, чтобы начать отсчёт 21 дня
           </p>
