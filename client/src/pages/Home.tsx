@@ -520,84 +520,85 @@ export default function Home() {
               }
               
               return (
-                <button
-                  key={module.key}
-                  onClick={() => {
-                    if (!isDisabled) {
-                      setOpenModule(module.key);
-                      localStorage.setItem('potok_last_module', module.key);
-                      // Прокручиваем к модулю
-                      setTimeout(() => {
-                        const element = document.querySelector(`[data-module-key="${module.key}"]`);
-                        if (element) {
-                          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }
-                      }, 100);
-                    }
-                  }}
-                  className={`
-                    relative px-3 py-1.5 rounded-lg text-xs font-semibold transition-all
-                    ${isCompleted 
-                      ? 'bg-green-500 text-white hover:bg-green-600' 
-                      : isDisabled
-                      ? 'bg-gray-200 dark:bg-gray-900 text-gray-400 dark:text-gray-600 opacity-50 cursor-not-allowed'
-                      : module.percent > 0
-                      ? 'bg-orange-200 dark:bg-orange-900/40 text-orange-700 dark:text-orange-400 hover:bg-orange-300 dark:hover:bg-orange-900/60 cursor-pointer'
-                      : 'bg-gray-100 dark:bg-gray-900 text-gray-500 dark:text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800 cursor-pointer'
-                    }
-                  `}
-                  title={`${moduleMeta[module.key].title}: ${module.percent}%`}
-                  disabled={isDisabled}
-                >
-                  {moduleNumber && <span className="mr-1 opacity-70">{moduleNumber}.</span>}
-                  {isCompleted && '✓ '}
-                  {moduleMeta[module.key].tagline}
-                  {!isCompleted && module.percent > 0 && (
-                    <span className="ml-1 text-[10px]">{module.percent}%</span>
-                  )}
-                </button>
+                <React.Fragment key={module.key}>
+                  <button
+                    onClick={() => {
+                      if (!isDisabled) {
+                        setOpenModule(module.key);
+                        localStorage.setItem('potok_last_module', module.key);
+                        // Прокручиваем к модулю
+                        setTimeout(() => {
+                          const element = document.querySelector(`[data-module-key="${module.key}"]`);
+                          if (element) {
+                            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                          }
+                        }, 100);
+                      }
+                    }}
+                    className={`
+                      relative px-3 py-1.5 rounded-lg text-xs font-semibold transition-all
+                      ${isCompleted 
+                        ? 'bg-green-500 text-white hover:bg-green-600' 
+                        : isDisabled
+                        ? 'bg-gray-200 dark:bg-gray-900 text-gray-400 dark:text-gray-600 opacity-50 cursor-not-allowed'
+                        : module.percent > 0
+                        ? 'bg-orange-200 dark:bg-orange-900/40 text-orange-700 dark:text-orange-400 hover:bg-orange-300 dark:hover:bg-orange-900/60 cursor-pointer'
+                        : 'bg-gray-100 dark:bg-gray-900 text-gray-500 dark:text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800 cursor-pointer'
+                      }
+                    `}
+                    title={`${moduleMeta[module.key].title}: ${module.percent}%`}
+                    disabled={isDisabled}
+                  >
+                    {moduleNumber && <span className="mr-1 opacity-70">{moduleNumber}.</span>}
+                    {isCompleted && '✓ '}
+                    {moduleMeta[module.key].tagline}
+                    {!isCompleted && module.percent > 0 && (
+                      <span className="ml-1 text-[10px]">{module.percent}%</span>
+                    )}
+                  </button>
+                  
+                  {/* Кнопка для дневника 21 день - вставляем после первого модуля */}
+                  {module.key === 'module1' && (() => {
+                    const practice21Days = Array.from({ length: 21 }, (_, i) => `mod1_5_day_${i + 1}`);
+                    const allDaysCompleted = practice21Days.every(dayKey => checkedItems[dayKey]);
+                    const hasAnyDay = practice21Days.some(dayKey => checkedItems[dayKey]);
+                    const isCompleted = allDaysCompleted;
+                    
+                    return (
+                      <button
+                        onClick={() => {
+                          // Прокручиваем к виджету дневника
+                          setTimeout(() => {
+                            const element = document.querySelector('[data-daily-practice-21]');
+                            if (element) {
+                              element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }
+                          }, 100);
+                        }}
+                        className={`
+                          relative px-3 py-1.5 rounded-lg text-xs font-semibold transition-all
+                          ${isCompleted 
+                            ? 'bg-green-500 text-white hover:bg-green-600' 
+                            : hasAnyDay
+                            ? 'bg-orange-200 dark:bg-orange-900/40 text-orange-700 dark:text-orange-400 hover:bg-orange-300 dark:hover:bg-orange-900/60 cursor-pointer'
+                            : 'bg-gray-100 dark:bg-gray-900 text-gray-500 dark:text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800 cursor-pointer'
+                          }
+                        `}
+                        title="Дневник 21 день"
+                      >
+                        {isCompleted && '✓ '}
+                        Дневник 21 день
+                        {!isCompleted && hasAnyDay && (
+                          <span className="ml-1 text-[10px]">
+                            {practice21Days.filter(dayKey => checkedItems[dayKey]).length}/21
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })()}
+                </React.Fragment>
               );
             })}
-            
-            {/* Кнопка для дневника 21 день */}
-            {(() => {
-              const practice21Days = Array.from({ length: 21 }, (_, i) => `mod1_5_day_${i + 1}`);
-              const allDaysCompleted = practice21Days.every(dayKey => checkedItems[dayKey]);
-              const hasAnyDay = practice21Days.some(dayKey => checkedItems[dayKey]);
-              const isCompleted = allDaysCompleted;
-              
-              return (
-                <button
-                  onClick={() => {
-                    // Прокручиваем к виджету дневника
-                    setTimeout(() => {
-                      const element = document.querySelector('[data-daily-practice-21]');
-                      if (element) {
-                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                      }
-                    }, 100);
-                  }}
-                  className={`
-                    relative px-3 py-1.5 rounded-lg text-xs font-semibold transition-all
-                    ${isCompleted 
-                      ? 'bg-green-500 text-white hover:bg-green-600' 
-                      : hasAnyDay
-                      ? 'bg-orange-200 dark:bg-orange-900/40 text-orange-700 dark:text-orange-400 hover:bg-orange-300 dark:hover:bg-orange-900/60 cursor-pointer'
-                      : 'bg-gray-100 dark:bg-gray-900 text-gray-500 dark:text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800 cursor-pointer'
-                    }
-                  `}
-                  title="Дневник 21 день"
-                >
-                  {isCompleted && '✓ '}
-                  Дневник 21 день
-                  {!isCompleted && hasAnyDay && (
-                    <span className="ml-1 text-[10px]">
-                      {practice21Days.filter(dayKey => checkedItems[dayKey]).length}/21
-                    </span>
-                  )}
-                </button>
-              );
-            })()}
           </div>
         </div>
 
