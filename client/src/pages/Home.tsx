@@ -350,6 +350,21 @@ export default function Home() {
     return { moduleStats, totals, allMainModulesCompleted };
   }, [checkedItems, groupedPractices]);
 
+  // Автоматически сбрасываем чекбокс практики 21 день, если не все дни выполнены
+  useEffect(() => {
+    const practice21Days = Array.from({ length: 21 }, (_, i) => `mod1_5_day_${i + 1}`);
+    const allDaysCompleted = practice21Days.every(dayKey => checkedItems[dayKey]);
+    
+    // Если чекбокс отмечен, но не все дни выполнены - сбрасываем его
+    if (!allDaysCompleted && checkedItems['mod1_5']) {
+      setCheckedItems(prev => {
+        const newItems = { ...prev };
+        delete newItems['mod1_5'];
+        return newItems;
+      });
+    }
+  }, [checkedItems]);
+
   const globalPercent = stats.totals.total ? Math.round((stats.totals.completed / stats.totals.total) * 100) : 0;
 
   const ProgressBar = ({ percent, accent = 'from-rose-500 to-red-500' }: { percent: number; accent?: string }) => (
@@ -487,10 +502,22 @@ export default function Home() {
         <div className="bg-white dark:bg-black rounded-2xl border border-gray-200 dark:border-gray-800 p-4 shadow-sm">
           <p className="text-xs uppercase text-gray-500 dark:text-gray-400 tracking-wider mb-3 text-center">Карта пути</p>
           <div className="flex flex-wrap justify-center gap-2">
-            {stats.moduleStats.map((module) => {
+            {stats.moduleStats.map((module, index) => {
               const isBonusModule = moduleMeta[module.key]?.isBonus;
               const isDisabled = isBonusModule && !stats.allMainModulesCompleted;
               const isCompleted = module.percent === 100;
+              
+              // Определяем номер для отображения
+              let moduleNumber = '';
+              if (module.key === 'setup' || module.key === 'prep') {
+                moduleNumber = ''; // Подготовительные без номера
+              } else if (module.key.startsWith('module')) {
+                const num = module.key.replace('module', '');
+                moduleNumber = num === '1' ? 'I' : num === '2' ? 'II' : num === '3' ? 'III' : num === '4' ? 'IV' : '';
+              } else if (module.key.startsWith('bonus')) {
+                const num = module.key.replace('bonus', '');
+                moduleNumber = `B${num}`;
+              }
               
               return (
                 <button
@@ -522,6 +549,7 @@ export default function Home() {
                   title={`${moduleMeta[module.key].title}: ${module.percent}%`}
                   disabled={isDisabled}
                 >
+                  {moduleNumber && <span className="mr-1 opacity-70">{moduleNumber}.</span>}
                   {isCompleted && '✓ '}
                   {moduleMeta[module.key].tagline}
                   {!isCompleted && module.percent > 0 && (
@@ -530,6 +558,46 @@ export default function Home() {
                 </button>
               );
             })}
+            
+            {/* Кнопка для дневника 21 день */}
+            {(() => {
+              const practice21Days = Array.from({ length: 21 }, (_, i) => `mod1_5_day_${i + 1}`);
+              const allDaysCompleted = practice21Days.every(dayKey => checkedItems[dayKey]);
+              const hasAnyDay = practice21Days.some(dayKey => checkedItems[dayKey]);
+              const isCompleted = allDaysCompleted;
+              
+              return (
+                <button
+                  onClick={() => {
+                    // Прокручиваем к виджету дневника
+                    setTimeout(() => {
+                      const element = document.querySelector('[data-daily-practice-21]');
+                      if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }
+                    }, 100);
+                  }}
+                  className={`
+                    relative px-3 py-1.5 rounded-lg text-xs font-semibold transition-all
+                    ${isCompleted 
+                      ? 'bg-green-500 text-white hover:bg-green-600' 
+                      : hasAnyDay
+                      ? 'bg-orange-200 dark:bg-orange-900/40 text-orange-700 dark:text-orange-400 hover:bg-orange-300 dark:hover:bg-orange-900/60 cursor-pointer'
+                      : 'bg-gray-100 dark:bg-gray-900 text-gray-500 dark:text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800 cursor-pointer'
+                    }
+                  `}
+                  title="Дневник 21 день"
+                >
+                  {isCompleted && '✓ '}
+                  Дневник 21 день
+                  {!isCompleted && hasAnyDay && (
+                    <span className="ml-1 text-[10px]">
+                      {practice21Days.filter(dayKey => checkedItems[dayKey]).length}/21
+                    </span>
+                  )}
+                </button>
+              );
+            })()}
           </div>
         </div>
 
@@ -689,20 +757,22 @@ export default function Home() {
               
               {/* Вставляем практику 21 день между модулями 1 и 2 */}
               {module.key === 'module1' && (
-                <DailyPractice21
-                  practiceId="mod1_5"
-                  practiceName="ДНЕВНИК 21 день - Тренажёр"
-                  practiceLink="https://t.me/c/2429484344/218"
-                  userId={telegramUser?.id || window.Telegram?.WebApp?.initDataUnsafe?.user?.id}
-                  checkedItems={checkedItems}
-                  onToggle={togglePractice}
-                  onReset={() => {
-                    // Сбрасываем основной чекбокс практики
-                    if (checkedItems['mod1_5']) {
-                      togglePractice('mod1_5');
-                    }
-                  }}
-                />
+                <div data-daily-practice-21>
+                  <DailyPractice21
+                    practiceId="mod1_5"
+                    practiceName="ДНЕВНИК 21 день - Тренажёр"
+                    practiceLink="https://t.me/c/2429484344/218"
+                    userId={telegramUser?.id || window.Telegram?.WebApp?.initDataUnsafe?.user?.id}
+                    checkedItems={checkedItems}
+                    onToggle={togglePractice}
+                    onReset={() => {
+                      // Сбрасываем основной чекбокс практики
+                      if (checkedItems['mod1_5']) {
+                        togglePractice('mod1_5');
+                      }
+                    }}
+                  />
+                </div>
               )}
             </React.Fragment>
             );
