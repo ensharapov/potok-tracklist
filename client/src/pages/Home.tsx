@@ -347,8 +347,8 @@ export default function Home() {
       return module && module.percent === 100;
     });
 
-    return { moduleStats, totals, allMainModulesCompleted };
-  }, [checkedItems, groupedPractices]);
+    return { moduleStats, totals, allMainModulesCompleted, bonusUnlocked };
+  }, [checkedItems, groupedPractices, bonusUnlocked]);
 
   // Автоматически сбрасываем чекбокс практики 21 день, если не все дни выполнены
   useEffect(() => {
@@ -504,7 +504,7 @@ export default function Home() {
           <div className="flex flex-wrap justify-center gap-2">
             {stats.moduleStats.map((module, index) => {
               const isBonusModule = moduleMeta[module.key]?.isBonus;
-              const isDisabled = isBonusModule && !stats.allMainModulesCompleted;
+              const isDisabled = isBonusModule && !stats.allMainModulesCompleted && !stats.bonusUnlocked;
               const isCompleted = module.percent === 100;
               
               // Определяем номер для отображения
@@ -607,7 +607,7 @@ export default function Home() {
         <div className="space-y-6">
           {stats.moduleStats.map((module, index) => {
             const isBonusModule = moduleMeta[module.key]?.isBonus;
-            const isDisabled = isBonusModule && !stats.allMainModulesCompleted;
+            const isDisabled = isBonusModule && !stats.allMainModulesCompleted && !stats.bonusUnlocked;
             
             return (
             <React.Fragment key={module.key}>
