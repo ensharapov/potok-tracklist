@@ -557,7 +557,7 @@ export default function Home() {
                     )}
                   </button>
                   
-                  {/* Кнопка для дневника 21 день - вставляем после первого модуля */}
+                  {/* Кнопка для дневника 21 день - центральная практика, выделяем особо */}
                   {module.key === 'module1' && (() => {
                     const practice21Days = Array.from({ length: 21 }, (_, i) => `mod1_5_day_${i + 1}`);
                     const allDaysCompleted = practice21Days.every(dayKey => checkedItems[dayKey]);
@@ -576,20 +576,22 @@ export default function Home() {
                           }, 100);
                         }}
                         className={`
-                          relative px-3 py-1.5 rounded-lg text-xs font-semibold transition-all
+                          relative px-4 py-2 rounded-xl text-sm font-bold transition-all transform hover:scale-105
+                          shadow-lg border-2
                           ${isCompleted 
-                            ? 'bg-green-500 text-white hover:bg-green-600' 
+                            ? 'bg-gradient-to-r from-yellow-400 to-amber-500 text-white border-yellow-300 hover:from-yellow-500 hover:to-amber-600 shadow-yellow-500/50' 
                             : hasAnyDay
-                            ? 'bg-orange-200 dark:bg-orange-900/40 text-orange-700 dark:text-orange-400 hover:bg-orange-300 dark:hover:bg-orange-900/60 cursor-pointer'
-                            : 'bg-gray-100 dark:bg-gray-900 text-gray-500 dark:text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-800 cursor-pointer'
+                            ? 'bg-gradient-to-r from-orange-300 to-amber-400 dark:from-orange-900/60 dark:to-amber-900/60 text-orange-900 dark:text-orange-200 border-orange-400 dark:border-orange-700 hover:from-orange-400 hover:to-amber-500 dark:hover:from-orange-800 dark:hover:to-amber-800 shadow-orange-500/30 cursor-pointer animate-pulse'
+                            : 'bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-800 dark:to-gray-900 text-gray-700 dark:text-gray-300 border-gray-400 dark:border-gray-700 hover:from-gray-300 hover:to-gray-400 dark:hover:from-gray-700 dark:hover:to-gray-800 cursor-pointer'
                           }
                         `}
-                        title="Дневник 21 день"
+                        title="Дневник 21 день - Центральная практика тренинга"
                       >
+                        <span className="mr-1.5">⭐</span>
                         {isCompleted && '✓ '}
-                        Дневник 21 день
+                        <span className="font-black">Дневник 21 день</span>
                         {!isCompleted && hasAnyDay && (
-                          <span className="ml-1 text-[10px]">
+                          <span className="ml-1.5 text-xs font-semibold bg-white/30 dark:bg-black/30 px-1.5 py-0.5 rounded">
                             {practice21Days.filter(dayKey => checkedItems[dayKey]).length}/21
                           </span>
                         )}

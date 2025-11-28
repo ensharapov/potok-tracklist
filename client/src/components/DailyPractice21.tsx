@@ -134,7 +134,10 @@ export function DailyPractice21({
   };
 
   return (
-    <div className="border-2 border-orange-200 dark:border-orange-700 rounded-2xl bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 p-6 mb-6">
+    <div className="border-3 border-orange-400 dark:border-orange-600 rounded-2xl bg-gradient-to-br from-orange-50 via-amber-50 to-orange-50 dark:from-orange-900/30 dark:via-amber-900/30 dark:to-orange-900/30 p-6 mb-6 shadow-xl shadow-orange-200/50 dark:shadow-orange-900/30 relative overflow-hidden">
+      {/* Декоративный элемент для выделения */}
+      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-yellow-400/20 to-orange-400/20 dark:from-yellow-500/10 dark:to-orange-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+      <div className="relative z-10">
       {/* Заголовок с ссылкой и кнопкой сброса */}
       <div className="mb-4 flex items-start justify-between gap-4">
         <div className="flex-1">
@@ -281,6 +284,7 @@ export function DailyPractice21({
           </p>
         </div>
       )}
+      </div>
     </div>
   );
 }
