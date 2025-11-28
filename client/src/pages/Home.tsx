@@ -148,6 +148,19 @@ const PracticeItem = ({ practice, checked, onToggle }: { practice: Practice; che
 
 export default function Home() {
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
+  
+  // Проверяем разблокировку бонусных модулей через URL или localStorage
+  const [bonusUnlocked, setBonusUnlocked] = useState<boolean>(() => {
+    // Проверяем URL параметр
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('unlock_bonus') === 'true') {
+      localStorage.setItem('bonus_unlocked', 'true');
+      return true;
+    }
+    // Проверяем localStorage
+    return localStorage.getItem('bonus_unlocked') === 'true';
+  });
+  
   // Загружаем последний открытый модуль из localStorage
   const [openModule, setOpenModule] = useState<(typeof moduleOrder)[number]>(() => {
     const saved = localStorage.getItem('potok_last_module');
