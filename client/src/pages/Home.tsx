@@ -121,10 +121,10 @@ const moduleMeta: Record<(typeof moduleOrder)[number], { title: string; tagline:
   module2: { title: 'МОДУЛЬ II: ИССЛЕДОВАНИЕ ПОТЕНЦИАЛА', tagline: 'Исследуем себя', accent: 'from-amber-500 to-emerald-500' },
   module3: { title: 'МОДУЛЬ III: ВЫБОР НАПРАВЛЕНИЯ', tagline: 'Фокусируем намерение', accent: 'from-emerald-500 to-sky-500' },
   module4: { title: 'МОДУЛЬ IV: ПРИВЫЧКА ДЕЛАТЬ', tagline: 'Фиксируем результат', accent: 'from-sky-500 to-indigo-500' },
-  bonus1: { title: 'БОНУСНЫЙ МОДУЛЬ 1: КАК УДЕРЖАТЬСЯ НА ПУТИ?', tagline: 'Бонусный модуль', accent: 'from-purple-500 to-pink-500', isBonus: true },
-  bonus2: { title: 'БОНУСНЫЙ МОДУЛЬ 2: РАБОТА С ЭМОЦИЯМИ', tagline: 'Бонусный модуль', accent: 'from-pink-500 to-rose-500', isBonus: true },
-  bonus3: { title: 'БОНУСНЫЙ МОДУЛЬ 3: РАБОТА С УБЕЖДЕНИЯМИ', tagline: 'Бонусный модуль', accent: 'from-violet-500 to-purple-500', isBonus: true },
-  bonus4: { title: 'БОНУСНЫЙ МОДУЛЬ 4: МУЖСКОЕ И ЖЕНСКОЕ ПРЕДНАЗНАЧЕНИЕ', tagline: 'Бонусный модуль', accent: 'from-indigo-500 to-purple-500', isBonus: true },
+  bonus1: { title: 'Как удержаться на пути Предназначения в долгую?', tagline: 'Бонусный модуль', accent: 'from-purple-500 to-pink-500', isBonus: true },
+  bonus2: { title: 'Как проработать сложные эмоции', tagline: 'Бонусный модуль', accent: 'from-pink-500 to-rose-500', isBonus: true },
+  bonus3: { title: 'Найти то, что тормозит, и обезвредить. Как расширить горизонт видения?', tagline: 'Бонусный модуль', accent: 'from-violet-500 to-purple-500', isBonus: true },
+  bonus4: { title: 'Как построить гармоничные семейные отношения', tagline: 'Бонусный модуль', accent: 'from-indigo-500 to-purple-500', isBonus: true },
 };
 
 const PracticeItem = ({ practice, checked, onToggle }: { practice: Practice; checked: boolean; onToggle: () => void }) => (
@@ -454,6 +454,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#fff9f8] to-white dark:from-gray-900 dark:to-gray-800 flex flex-col">
       <div className="bg-white dark:bg-gray-800 border-b-2 border-red-600 dark:border-red-500 px-6 py-8 text-center shadow-sm">
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">Тренинг по методу Павла Кочкина</p>
         <h1 className="text-5xl font-black text-black dark:text-white mb-2 tracking-[0.2em]">ПОТОК</h1>
         <p className="text-xl text-red-600 dark:text-red-400 font-semibold">Чтоб глаза горели и деньги были</p>
         {isTelegram && telegramUser && (
@@ -479,6 +480,42 @@ export default function Home() {
               <ProgressBar percent={globalPercent} accent="from-red-500 to-orange-400" />
               <p className="text-xs text-white/60 mt-2">Каждый чекбокс — топливо для следующего рывка</p>
             </div>
+          </div>
+        </div>
+
+        {/* Карта всего пути */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
+          <p className="text-xs uppercase text-gray-500 dark:text-gray-400 tracking-wider mb-3 text-center">Карта пути</p>
+          <div className="flex flex-wrap justify-center gap-2">
+            {stats.moduleStats.map((module) => {
+              const isBonusModule = moduleMeta[module.key]?.isBonus;
+              const isDisabled = isBonusModule && !stats.allMainModulesCompleted;
+              const isCompleted = module.percent === 100;
+              
+              return (
+                <div
+                  key={module.key}
+                  className={`
+                    relative px-3 py-1.5 rounded-lg text-xs font-semibold transition-all
+                    ${isCompleted 
+                      ? 'bg-green-500 text-white' 
+                      : isDisabled
+                      ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 opacity-50'
+                      : module.percent > 0
+                      ? 'bg-orange-200 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                    }
+                  `}
+                  title={`${moduleMeta[module.key].title}: ${module.percent}%`}
+                >
+                  {isCompleted && '✓ '}
+                  {moduleMeta[module.key].tagline}
+                  {!isCompleted && module.percent > 0 && (
+                    <span className="ml-1 text-[10px]">{module.percent}%</span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -521,7 +558,7 @@ export default function Home() {
                           : 'text-purple-600 dark:text-purple-400 font-bold'
                         : 'text-gray-500 dark:text-gray-400'
                     }`}>
-                      {isBonusModule ? '🎁 ' : ''}{moduleMeta[module.key].tagline}
+                      {moduleMeta[module.key].tagline}
                     </p>
                     <h2 className={`text-2xl font-black ${
                       isDisabled 
@@ -532,7 +569,7 @@ export default function Home() {
                     </h2>
                     {isDisabled && (
                       <p className="text-sm text-orange-600 dark:text-orange-400 mt-2 font-semibold">
-                        🔒 Завершите все основные модули, чтобы открыть
+                        Пройдите Поток, чтобы открыть модуль
                       </p>
                     )}
                   </div>

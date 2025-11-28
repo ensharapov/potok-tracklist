@@ -139,16 +139,51 @@ export function DailyPractice21({
       <div className="mb-4 flex items-start justify-between gap-4">
         <div className="flex-1">
           <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">Дневник 21 день</h3>
-          {practiceLink && (
-            <a
-              href={practiceLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 underline font-medium"
+          <div className="flex flex-wrap items-center gap-3">
+            {practiceLink && (
+              <a
+                href={practiceLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 underline font-medium"
+              >
+                Открыть чат для сдачи отчета →
+              </a>
+            )}
+            <button
+              onClick={() => {
+                const reportTemplate = `День ${stats.currentDay || 'X'}/21
+
+🦌 Лось
+
+🐳 Личность
+
+✅ 1 шаг
+
+🟢 Я молодец: 
+
+🟢 Он молодец: 
+
+🟢 Они молодцы: 
+
+👻 Развивающий дискомфорт
+
+🎁 Награда
+
+@бадди`;
+
+                navigator.clipboard.writeText(reportTemplate).then(() => {
+                  // Можно добавить уведомление об успешном копировании
+                  alert('Форма отчета скопирована!');
+                }).catch(() => {
+                  alert('Не удалось скопировать. Попробуйте еще раз.');
+                });
+              }}
+              className="text-sm text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 font-medium px-3 py-1 border border-orange-300 dark:border-orange-700 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors"
             >
-              Открыть чат для сдачи отчета →
-            </a>
-          )}
+              Форма отчета • Скопировать
+            </button>
+          </div>
         </div>
         {startDate && (
           <button
