@@ -12,7 +12,8 @@ interface Practice {
   isBonus?: boolean;
 }
 
-const practices: Practice[] = [
+// Практики для студентов (основной поток)
+const studentPractices: Practice[] = [
   // НАСТРОЙКА НА РАБОТУ В ПОТОКЕ
   { id: 'setup_1', name: 'Повесть-притча "Чайка по имени Джонатан Ливингстон"', link: 'https://t.me/c/2429484344/208', module: 'setup' },
   { id: 'setup_2', name: 'Видео-квест: Зачем вам нужен бадди', link: 'https://t.me/c/2429484344/209', module: 'setup' },
@@ -112,6 +113,17 @@ const practices: Practice[] = [
   { id: 'bonus4_16', name: 'ДЛЯ СВЯЗИ - окно, где можно обмениваться опытом и обратной связью, поддерживать друг друга в рамках данного модуля', link: 'https://t.me/c/2739965403/41', module: 'bonus4' },
 ];
 
+// Практики для выпускников (расширенный доступ)
+// TODO: Добавить практики для выпускников
+const graduatePractices: Practice[] = [
+  // Здесь будут практики для выпускников
+  // Можно добавить те же практики, что и для студентов, плюс дополнительные
+  // или полностью другие модули
+];
+
+// Выбираем массив практик в зависимости от режима
+// Это будет использоваться внутри компонента через useMemo
+
 const moduleOrder = ['setup', 'prep', 'module1', 'module2', 'module3', 'module4', 'bonus1', 'bonus2', 'bonus3', 'bonus4'] as const;
 
 const moduleMeta: Record<(typeof moduleOrder)[number], { title: string; tagline: string; accent: string; isBonus?: boolean }> = {
@@ -146,8 +158,27 @@ const PracticeItem = ({ practice, checked, onToggle }: { practice: Practice; che
   </div>
 );
 
+type AppMode = 'student' | 'graduate';
+
 export default function Home() {
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
+
+  // Проверяем доступ к режиму выпускника (через URL параметр или localStorage)
+  // В будущем это можно заменить на проверку через API/Telegram WebApp initData
+  const [hasGraduateAccess, setHasGraduateAccess] = useState<boolean>(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('graduate_access') === 'true') {
+      localStorage.setItem('graduate_access', 'true');
+      return true;
+    }
+    return localStorage.getItem('graduate_access') === 'true';
+  });
+  
+  // Режим приложения: студент или выпускник
+  const [appMode, setAppMode] = useState<AppMode>(() => {
+    const saved = localStorage.getItem('potok_app_mode');
+    return (saved === 'graduate' && hasGraduateAccess) ? 'graduate' : 'student';
+  });
   
   // Проверяем разблокировку бонусных модулей через URL или localStorage
   const [bonusUnlocked, setBonusUnlocked] = useState<boolean>(() => {
@@ -213,12 +244,20 @@ export default function Home() {
           if (response.data?.checkedItems && Object.keys(response.data.checkedItems).length > 0) {
             const serverItems = response.data.checkedItems;
             const serverCount = Object.keys(serverItems).length;
-            console.log('[Client] Loaded', serverCount, 'items from Supabase');
+            const serverAppMode = response.data?.appMode;
+            console.log('[Client] Loaded', serverCount, 'items from Supabase, appMode:', serverAppMode);
             
             if (isMounted) {
               // Серверные данные имеют приоритет
               setCheckedItems(serverItems);
               localStorage.setItem('potok_progress', JSON.stringify(serverItems));
+              
+              // Восстанавливаем режим из сервера, если есть доступ
+              if (serverAppMode && hasGraduateAccess) {
+                setAppMode(serverAppMode);
+                localStorage.setItem('potok_app_mode', serverAppMode);
+              }
+              
               console.log('[Client] Updated from Supabase');
             }
             return;
@@ -280,6 +319,24 @@ export default function Home() {
     localStorage.setItem('potok_progress', JSON.stringify(checkedItems));
     }
   }, [checkedItems]);
+
+  // Выбираем массив практик в зависимости от режима
+  const practices = appMode === 'graduate' ? graduatePractices : studentPractices;
+  
+  // Сохраняем режим в localStorage при изменении
+  useEffect(() => {
+    localStorage.setItem('potok_app_mode', appMode);
+  }, [appMode]);
+  
+  // Обработчик переключения режима
+  const handleModeSwitch = (newMode: AppMode) => {
+    if (newMode === 'graduate' && !hasGraduateAccess) {
+      // Если пытаются переключиться на режим выпускника без доступа
+      return;
+    }
+    setAppMode(newMode);
+    localStorage.setItem('potok_app_mode', newMode);
+  };
 
   const togglePractice = (id: string) => {
     setCheckedItems(prev => ({
@@ -417,6 +474,7 @@ export default function Home() {
             await axios.post('/api/progress-supabase', {
               userId: String(userId),
               checkedItems,
+              appMode, // Сохраняем режим приложения
               telegramUsername: telegramUser?.username || window.Telegram?.WebApp?.initDataUnsafe?.user?.username,
               telegramFirstName: telegramUser?.first_name || window.Telegram?.WebApp?.initDataUnsafe?.user?.first_name,
               telegramLastName: telegramUser?.last_name || window.Telegram?.WebApp?.initDataUnsafe?.user?.last_name,
@@ -481,7 +539,32 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#fff9f8] to-white dark:from-black dark:to-black flex flex-col">
-      <div className="bg-white dark:bg-black border-b-2 border-red-600 dark:border-red-500 px-6 py-8 text-center shadow-sm">
+      <div className="bg-white dark:bg-black border-b-2 border-red-600 dark:border-red-500 px-6 py-8 text-center shadow-sm relative">
+        {/* Переключатель режимов (только если есть доступ к режиму выпускника) */}
+        {hasGraduateAccess && (
+          <div className="absolute top-4 right-4 flex items-center gap-2 bg-gray-100 dark:bg-gray-900 rounded-lg p-1">
+            <button
+              onClick={() => handleModeSwitch('student')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                appMode === 'student'
+                  ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              Студент
+            </button>
+            <button
+              onClick={() => handleModeSwitch('graduate')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                appMode === 'graduate'
+                  ? 'bg-orange-500 text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              Выпускник
+            </button>
+          </div>
+        )}
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">Тренинг по методу Павла Кочкина</p>
         <h1 className="text-5xl font-black text-black dark:text-white mb-2 tracking-[0.2em]">ПОТОК</h1>
         <p className="text-xl text-red-600 dark:text-red-400 font-semibold">Чтоб глаза горели и деньги были</p>
@@ -621,8 +704,8 @@ export default function Home() {
           {stats.moduleStats.map((module, index) => {
             const isBonusModule = moduleMeta[module.key]?.isBonus;
             const isDisabled = isBonusModule && !stats.allMainModulesCompleted && !stats.bonusUnlocked;
-            
-            return (
+
+          return (
             <React.Fragment key={module.key}>
               <div
                 data-module-key={module.key}
@@ -665,7 +748,7 @@ export default function Home() {
                         : 'text-gray-900 dark:text-white'
                     }`}>
                       {moduleMeta[module.key].title}
-                    </h2>
+                </h2>
                     {isDisabled && (
                       <p className="text-sm text-orange-600 dark:text-orange-400 mt-2 font-semibold">
                         Пройдите Поток, чтобы открыть модуль
@@ -697,19 +780,19 @@ export default function Home() {
                   <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mt-3">
                     <span>{module.percent}% модуля</span>
                     <span>{module.main.length} обязательных • {module.bonus.length} бонусов</span>
-                  </div>
+              </div>
 
                   {openModule === module.key && !isDisabled && (
                     <div className="mt-6 space-y-6">
                       <div className="space-y-1">
                         {module.main.map(practice => (
-                          <PracticeItem
-                            key={practice.id}
-                            practice={practice}
-                            checked={checkedItems[practice.id] || false}
-                            onToggle={() => togglePractice(practice.id)}
-                          />
-                        ))}
+                  <PracticeItem
+                    key={practice.id}
+                    practice={practice}
+                    checked={checkedItems[practice.id] || false}
+                    onToggle={() => togglePractice(practice.id)}
+                  />
+                ))}
                         
                         {/* Чекбокс для практики 21 день - доступен только после выполнения всех дней */}
                         {module.key === 'module1' && (() => {
@@ -749,24 +832,24 @@ export default function Home() {
                             </div>
                           );
                         })()}
-                      </div>
+              </div>
 
                       {module.bonus.length > 0 && (
                         <div className="border-t border-dashed border-gray-200 dark:border-gray-800 pt-4">
                           <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2 tracking-widest">Бонусы на выходные</p>
-                          <div className="space-y-1">
+                  <div className="space-y-1">
                             {module.bonus.map(practice => (
-                              <PracticeItem
-                                key={practice.id}
-                                practice={practice}
-                                checked={checkedItems[practice.id] || false}
-                                onToggle={() => togglePractice(practice.id)}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                      <PracticeItem
+                        key={practice.id}
+                        practice={practice}
+                        checked={checkedItems[practice.id] || false}
+                        onToggle={() => togglePractice(practice.id)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
                   )}
                 </div>
               </div>
@@ -791,8 +874,8 @@ export default function Home() {
                 </div>
               )}
             </React.Fragment>
-            );
-          })}
+          );
+        })}
         </div>
       </div>
 

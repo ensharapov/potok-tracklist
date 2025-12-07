@@ -3,8 +3,10 @@ import { createClient } from '@supabase/supabase-js';
 
 // Инициализация Supabase
 // В serverless functions переменные без VITE_ префикса
+// Используем Service Role Key для обхода RLS (более безопасно)
+// Если Service Role Key не настроен, используем ANON_KEY как fallback
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
 
 const supabase = supabaseUrl && supabaseKey
   ? createClient(supabaseUrl, supabaseKey)
@@ -25,9 +27,9 @@ export default async function handler(
 
   if (req.method === 'POST') {
     // Сохранение прогресса
-    const { userId, checkedItems, telegramUsername, telegramFirstName, telegramLastName } = req.body;
+    const { userId, checkedItems, appMode, telegramUsername, telegramFirstName, telegramLastName } = req.body;
 
-    console.log('[API] POST /api/progress-supabase', { userId, itemsCount: Object.keys(checkedItems || {}).length });
+    console.log('[API] POST /api/progress-supabase', { userId, itemsCount: Object.keys(checkedItems || {}).length, appMode });
 
     if (!userId || typeof userId !== 'string') {
       console.error('[API] Missing userId');
@@ -46,16 +48,31 @@ export default async function handler(
 
     try {
       // Используем upsert (обновить или создать)
+      // Сохраняем appMode в метаданных checkedItems или в отдельном поле
+      const updateData: any = {
+        user_id: userId, // Supabase автоматически конвертирует строку в BIGINT
+        checked_items: checkedItems,
+        telegram_username: telegramUsername || null,
+        telegram_first_name: telegramFirstName || null,
+        telegram_last_name: telegramLastName || null,
+        updated_at: new Date().toISOString(),
+      };
+      
+      // Если есть appMode, сохраняем его в метаданных (можно добавить отдельное поле позже)
+      if (appMode) {
+        // Сохраняем в checkedItems как метаданные
+        updateData.checked_items = {
+          ...checkedItems,
+          _meta: {
+            ...(checkedItems._meta || {}),
+            appMode,
+          },
+        };
+      }
+      
       const { data, error } = await supabase
         .from('user_progress')
-        .upsert({
-          user_id: userId, // Supabase автоматически конвертирует строку в BIGINT
-          checked_items: checkedItems,
-          telegram_username: telegramUsername || null,
-          telegram_first_name: telegramFirstName || null,
-          telegram_last_name: telegramLastName || null,
-          updated_at: new Date().toISOString(),
-        }, {
+        .upsert(updateData, {
           onConflict: 'user_id',
         })
         .select();
@@ -100,15 +117,23 @@ export default async function handler(
         if (error.code === 'PGRST116') {
           // Запись не найдена - возвращаем пустой объект
           console.log('[API] No progress found for userId:', userId);
-          return res.json({ checkedItems: {} });
+          return res.json({ checkedItems: {}, appMode: null });
         }
         console.error('[API] Supabase error:', error);
         return res.status(500).json({ error: error.message });
       }
 
       const checkedItems = data?.checked_items || {};
-      console.log('[API] Progress loaded from Supabase for userId:', userId, 'items:', Object.keys(checkedItems).length);
-      return res.json({ checkedItems });
+      // Извлекаем appMode из метаданных
+      const appMode = checkedItems._meta?.appMode || null;
+      // Убираем метаданные из checkedItems перед возвратом (чтобы не мешали в логике)
+      const cleanCheckedItems = { ...checkedItems };
+      if (cleanCheckedItems._meta) {
+        delete cleanCheckedItems._meta;
+      }
+      
+      console.log('[API] Progress loaded from Supabase for userId:', userId, 'items:', Object.keys(cleanCheckedItems).length, 'appMode:', appMode);
+      return res.json({ checkedItems: cleanCheckedItems, appMode });
     } catch (error: any) {
       console.error('[API] Error loading progress:', error);
       return res.status(500).json({ error: error.message });

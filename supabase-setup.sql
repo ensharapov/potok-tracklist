@@ -40,27 +40,10 @@ CREATE TRIGGER update_user_progress_updated_at
   EXECUTE FUNCTION update_updated_at_column();
 
 -- Row Level Security (RLS) - отключаем для начала, чтобы всё работало
--- Потом можно включить и настроить политики
+-- ⚠️ ВАЖНО: После первоначальной настройки ВКЛЮЧИ RLS для безопасности!
+-- Выполни скрипт supabase-enable-rls.sql для включения RLS
 ALTER TABLE user_progress DISABLE ROW LEVEL SECURITY;
 
--- Политики (пока отключены, но оставляем для будущего)
--- Раскомментируй и настрой позже, если нужно ограничить доступ
-/*
-ALTER TABLE user_progress ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Users can read own progress"
-  ON user_progress
-  FOR SELECT
-  USING (true); -- Пока разрешаем всем
-
-CREATE POLICY "Users can update own progress"
-  ON user_progress
-  FOR UPDATE
-  USING (true);
-
-CREATE POLICY "Users can insert own progress"
-  ON user_progress
-  FOR INSERT
-  WITH CHECK (true);
-*/
+-- ⚠️ БЕЗОПАСНОСТЬ: После выполнения этого скрипта выполни supabase-enable-rls.sql
+-- Это включит RLS и защитит данные от несанкционированного доступа
 

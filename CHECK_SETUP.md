@@ -78,3 +78,7 @@ console.log('Telegram user:', window.Telegram?.WebApp?.initDataUnsafe?.user);
 
 Должен показать объект с `id`, `first_name` и т.д. Если `id` разный на разных устройствах → это разные аккаунты Telegram.
 
+
+
+
+

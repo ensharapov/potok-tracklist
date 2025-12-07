@@ -158,21 +158,15 @@ export function DailyPractice21({
                 const reportTemplate = `День ${stats.currentDay || 'X'}/21
 
 🦌 Лось
-
 🐳 Личность
-
 ✅ 1 шаг
 
 🟢 Я молодец: 
-
 🟢 Он молодец: 
-
 🟢 Они молодцы: 
 
 👻 Развивающий дискомфорт
-
 🎁 Награда
-
 @бадди`;
 
                 navigator.clipboard.writeText(reportTemplate).then(() => {
